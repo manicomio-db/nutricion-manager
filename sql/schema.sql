@@ -105,6 +105,15 @@ create table if not exists public.payments (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.progress_photos (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references public.profiles (id) on delete cascade,
+  storage_path text not null,
+  fecha date not null default current_date,
+  notas text,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.nutrition_plan_requests (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references public.profiles (id) on delete cascade,
@@ -198,6 +207,7 @@ alter table public.foods enable row level security;
 alter table public.tips enable row level security;
 alter table public.tip_categories enable row level security;
 alter table public.payments enable row level security;
+alter table public.progress_photos enable row level security;
 alter table public.nutrition_plans enable row level security;
 alter table public.progress_logs enable row level security;
 alter table public.training_plan_requests enable row level security;
@@ -252,6 +262,19 @@ create policy "payments_select_own_or_admin" on public.payments
 drop policy if exists "payments_write_admin" on public.payments;
 create policy "payments_write_admin" on public.payments
   for all using (public.is_admin()) with check (public.is_admin());
+
+-- progress_photos ---------------------------------------------------------------
+drop policy if exists "progress_photos_select_own_or_admin" on public.progress_photos;
+create policy "progress_photos_select_own_or_admin" on public.progress_photos
+  for select using (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "progress_photos_insert_own" on public.progress_photos;
+create policy "progress_photos_insert_own" on public.progress_photos
+  for insert with check (client_id = auth.uid());
+
+drop policy if exists "progress_photos_delete_own_or_admin" on public.progress_photos;
+create policy "progress_photos_delete_own_or_admin" on public.progress_photos
+  for delete using (client_id = auth.uid() or public.is_admin());
 
 -- nutrition_plans -----------------------------------------------------------
 drop policy if exists "plans_select_own_or_admin" on public.nutrition_plans;
@@ -313,3 +336,34 @@ create policy "nutrition_requests_update_admin" on public.nutrition_plan_request
 drop policy if exists "nutrition_requests_delete_admin" on public.nutrition_plan_requests;
 create policy "nutrition_requests_delete_admin" on public.nutrition_plan_requests
   for delete using (public.is_admin());
+
+-- ----------------------------------------------------------------------------
+-- Storage: bucket privado para fotos de progreso
+-- Cada archivo se guarda bajo la carpeta "<id-del-cliente>/archivo.jpg" — las
+-- políticas usan ese primer segmento de la ruta para saber a quién pertenece.
+-- ----------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public)
+values ('progress-photos', 'progress-photos', false)
+on conflict (id) do nothing;
+
+drop policy if exists "progress_photos_storage_insert" on storage.objects;
+create policy "progress_photos_storage_insert" on storage.objects
+  for insert with check (
+    bucket_id = 'progress-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "progress_photos_storage_select" on storage.objects;
+create policy "progress_photos_storage_select" on storage.objects
+  for select using (
+    bucket_id = 'progress-photos'
+    and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin())
+  );
+
+drop policy if exists "progress_photos_storage_delete" on storage.objects;
+create policy "progress_photos_storage_delete" on storage.objects
+  for delete using (
+    bucket_id = 'progress-photos'
+    and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin())
+  );

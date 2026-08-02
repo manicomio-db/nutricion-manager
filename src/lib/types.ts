@@ -11,6 +11,15 @@ export type Profile = {
   created_at: string;
 };
 
+export type ProgressPhoto = {
+  id: string;
+  client_id: string;
+  storage_path: string;
+  fecha: string;
+  notas: string | null;
+  created_at: string;
+};
+
 export type TipCategory = {
   id: string;
   titulo: string;

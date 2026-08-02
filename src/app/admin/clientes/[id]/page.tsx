@@ -10,6 +10,7 @@ import type {
   NutritionPlanRequest,
   Payment,
   ProgressLog,
+  ProgressPhoto,
   Profile,
   TrainingPlan,
   TrainingPlanRequest,
@@ -18,6 +19,7 @@ import { ClientProfileForm } from "./profile-form";
 import { ProgressLogForm } from "./progress-form";
 import { PaymentForm } from "./payment-form";
 import { ProgressChart } from "@/components/progress-chart";
+import { PhotoGallery } from "@/components/photo-gallery";
 import { TrainingComposer } from "./training-composer";
 import { NutritionAiComposer } from "./nutrition-ai-composer";
 import { todayLocal } from "@/lib/date";
@@ -26,6 +28,7 @@ import {
   deletePlan,
   deletePayment,
   deleteProgressLog,
+  deleteProgressPhoto,
   deleteTrainingPlan,
 } from "../../actions";
 
@@ -55,6 +58,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     { data: trainingPlans },
     { data: nutritionRequests },
     { data: payments },
+    { data: photos },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).single<Profile>(),
     supabase
@@ -93,6 +97,12 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       .eq("client_id", id)
       .order("fecha_vencimiento", { ascending: false })
       .returns<Payment[]>(),
+    supabase
+      .from("progress_photos")
+      .select("*")
+      .eq("client_id", id)
+      .order("fecha", { ascending: false })
+      .returns<ProgressPhoto[]>(),
   ]);
 
   if (!client) notFound();
@@ -101,6 +111,23 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const activeNutritionRequests = (nutritionRequests ?? []).filter((r) => r.status !== "completado");
   const latestPayment = payments?.[0] ?? null;
   const status = membershipStatus(latestPayment?.fecha_vencimiento, todayLocal());
+
+  let galleryPhotos: { id: string; path: string; url: string; fecha: string; notas: string | null }[] = [];
+  if (photos && photos.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from("progress-photos")
+      .createSignedUrls(
+        photos.map((p) => p.storage_path),
+        3600
+      );
+    galleryPhotos = photos.map((p, i) => ({
+      id: p.id,
+      path: p.storage_path,
+      url: signed?.[i]?.signedUrl ?? "",
+      fecha: p.fecha,
+      notas: p.notas,
+    }));
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -355,6 +382,20 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="progreso">
           <div className="flex flex-col gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Fotos de progreso</CardTitle>
+                <CardDescription>Subidas por el propio cliente desde su portal.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PhotoGallery
+                  photos={galleryPhotos}
+                  deleteAction={deleteProgressPhoto}
+                  extraFields={{ client_id: id }}
+                />
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Registrar medición</CardTitle>

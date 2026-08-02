@@ -1,24 +1,70 @@
 import { requireClient } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressChart } from "@/components/progress-chart";
-import type { ProgressLog } from "@/lib/types";
+import { PhotoGallery } from "@/components/photo-gallery";
+import { PhotoUploadForm } from "./photo-upload-form";
+import { deleteOwnProgressPhoto } from "../actions";
+import type { ProgressLog, ProgressPhoto } from "@/lib/types";
 
 export default async function ClienteProgresoPage() {
   const { profile, supabase } = await requireClient();
 
-  const { data: logs } = await supabase
-    .from("progress_logs")
-    .select("*")
-    .eq("client_id", profile.id)
-    .order("fecha", { ascending: true })
-    .returns<ProgressLog[]>();
+  const [{ data: logs }, { data: photos }] = await Promise.all([
+    supabase
+      .from("progress_logs")
+      .select("*")
+      .eq("client_id", profile.id)
+      .order("fecha", { ascending: true })
+      .returns<ProgressLog[]>(),
+    supabase
+      .from("progress_photos")
+      .select("*")
+      .eq("client_id", profile.id)
+      .order("fecha", { ascending: false })
+      .returns<ProgressPhoto[]>(),
+  ]);
+
+  let galleryPhotos: { id: string; path: string; url: string; fecha: string; notas: string | null }[] = [];
+  if (photos && photos.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from("progress-photos")
+      .createSignedUrls(
+        photos.map((p) => p.storage_path),
+        3600
+      );
+    galleryPhotos = photos.map((p, i) => ({
+      id: p.id,
+      path: p.storage_path,
+      url: signed?.[i]?.signedUrl ?? "",
+      fecha: p.fecha,
+      notas: p.notas,
+    }));
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">Mi progreso</h1>
-        <p className="text-muted-foreground">Mediciones registradas por tu nutricionista.</p>
+        <p className="text-muted-foreground">Mediciones y fotos de tu progreso físico.</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Subir foto de progreso</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PhotoUploadForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Mis fotos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PhotoGallery photos={galleryPhotos} deleteAction={deleteOwnProgressPhoto} />
+        </CardContent>
+      </Card>
 
       {logs && logs.length > 0 ? (
         <>

@@ -6,6 +6,21 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { todayLocal } from "@/lib/date";
 import type { Meal, TrainingPlanContent } from "@/lib/types";
 
+// --- Fotos de progreso ---------------------------------------------------------
+
+export async function deleteProgressPhoto(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const path = String(formData.get("path") ?? "");
+  const clientId = String(formData.get("client_id") ?? "");
+  if (!id || !path) return;
+
+  await supabase.storage.from("progress-photos").remove([path]);
+  await supabase.from("progress_photos").delete().eq("id", id);
+
+  revalidatePath(`/admin/clientes/${clientId}`);
+}
+
 // --- Pagos ------------------------------------------------------------------
 
 export async function addPayment(formData: FormData) {
