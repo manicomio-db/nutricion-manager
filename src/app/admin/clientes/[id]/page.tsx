@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type {
   NutritionPlan,
   NutritionPlanRequest,
+  Payment,
   ProgressLog,
   Profile,
   TrainingPlan,
@@ -15,11 +16,15 @@ import type {
 } from "@/lib/types";
 import { ClientProfileForm } from "./profile-form";
 import { ProgressLogForm } from "./progress-form";
+import { PaymentForm } from "./payment-form";
 import { ProgressChart } from "@/components/progress-chart";
 import { TrainingComposer } from "./training-composer";
 import { NutritionAiComposer } from "./nutrition-ai-composer";
+import { todayLocal } from "@/lib/date";
+import { membershipStatus } from "@/lib/payments";
 import {
   deletePlan,
+  deletePayment,
   deleteProgressLog,
   deleteTrainingPlan,
 } from "../../actions";
@@ -32,6 +37,12 @@ const TRAINING_STATUS_LABEL: Record<string, string> = {
 
 const NUTRITION_STATUS_LABEL = TRAINING_STATUS_LABEL;
 
+const MEMBERSHIP_LABEL: Record<string, string> = {
+  activo: "Activo",
+  vencido: "Vencido",
+  sin_pago: "Sin pagos registrados",
+};
+
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase } = await requireAdmin();
@@ -43,6 +54,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     { data: trainingRequests },
     { data: trainingPlans },
     { data: nutritionRequests },
+    { data: payments },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).single<Profile>(),
     supabase
@@ -75,23 +87,38 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       .eq("client_id", id)
       .order("created_at", { ascending: false })
       .returns<NutritionPlanRequest[]>(),
+    supabase
+      .from("payments")
+      .select("*")
+      .eq("client_id", id)
+      .order("fecha_vencimiento", { ascending: false })
+      .returns<Payment[]>(),
   ]);
 
   if (!client) notFound();
 
   const activeTrainingRequests = (trainingRequests ?? []).filter((r) => r.status !== "completado");
   const activeNutritionRequests = (nutritionRequests ?? []).filter((r) => r.status !== "completado");
+  const latestPayment = payments?.[0] ?? null;
+  const status = membershipStatus(latestPayment?.fecha_vencimiento, todayLocal());
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">{client.full_name ?? "Cliente"}</h1>
-        <p className="text-muted-foreground">{client.objetivo ?? "Sin objetivo definido"}</p>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{client.full_name ?? "Cliente"}</h1>
+          <p className="text-muted-foreground">{client.objetivo ?? "Sin objetivo definido"}</p>
+        </div>
+        <Badge variant={status === "activo" ? "default" : status === "vencido" ? "destructive" : "secondary"}>
+          {MEMBERSHIP_LABEL[status]}
+          {latestPayment ? ` · vence ${latestPayment.fecha_vencimiento}` : ""}
+        </Badge>
       </div>
 
       <Tabs defaultValue="datos">
         <TabsList>
           <TabsTrigger value="datos">Datos</TabsTrigger>
+          <TabsTrigger value="pagos">Pagos</TabsTrigger>
           <TabsTrigger value="planes">Planes</TabsTrigger>
           <TabsTrigger value="entrenamiento">Entrenamiento</TabsTrigger>
           <TabsTrigger value="progreso">Progreso</TabsTrigger>
@@ -107,6 +134,50 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               <ClientProfileForm client={client} />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="pagos">
+          <div className="flex flex-col gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Registrar pago</CardTitle>
+                <CardDescription>Guarda la fecha de pago y hasta cuándo queda cubierto.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PaymentForm clientId={id} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Historial de pagos</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                {(payments ?? []).map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between rounded-md border p-3 text-sm"
+                  >
+                    <span>
+                      Pagó {p.fecha_pago} — vence <strong>{p.fecha_vencimiento}</strong>
+                      {p.monto ? ` · $${p.monto}` : ""}
+                      {p.notas ? ` · ${p.notas}` : ""}
+                    </span>
+                    <form action={deletePayment}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <input type="hidden" name="client_id" value={id} />
+                      <Button type="submit" size="sm" variant="ghost" className="text-destructive">
+                        Borrar
+                      </Button>
+                    </form>
+                  </div>
+                ))}
+                {(!payments || payments.length === 0) && (
+                  <p className="text-muted-foreground">Aún no hay pagos registrados.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="planes">

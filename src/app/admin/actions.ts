@@ -6,6 +6,36 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { todayLocal } from "@/lib/date";
 import type { Meal, TrainingPlanContent } from "@/lib/types";
 
+// --- Pagos ------------------------------------------------------------------
+
+export async function addPayment(formData: FormData) {
+  const { profile, supabase } = await requireAdmin();
+  const clientId = String(formData.get("client_id") ?? "");
+  const fechaVencimiento = String(formData.get("fecha_vencimiento") ?? "");
+  if (!clientId || !fechaVencimiento) return;
+
+  await supabase.from("payments").insert({
+    client_id: clientId,
+    admin_id: profile.id,
+    monto: Number(formData.get("monto") ?? 0) || 0,
+    fecha_pago: String(formData.get("fecha_pago") ?? todayLocal()),
+    fecha_vencimiento: fechaVencimiento,
+    notas: String(formData.get("notas") ?? "").trim() || null,
+  });
+
+  revalidatePath(`/admin/clientes/${clientId}`);
+  revalidatePath("/admin");
+}
+
+export async function deletePayment(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const clientId = String(formData.get("client_id") ?? "");
+  await supabase.from("payments").delete().eq("id", id);
+  revalidatePath(`/admin/clientes/${clientId}`);
+  revalidatePath("/admin");
+}
+
 // --- Alimentos ----------------------------------------------------------------
 
 export async function upsertFood(formData: FormData) {

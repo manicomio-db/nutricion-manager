@@ -28,6 +28,17 @@ export type Tip = {
   created_at: string;
 };
 
+export type Payment = {
+  id: string;
+  client_id: string;
+  admin_id: string | null;
+  monto: number;
+  fecha_pago: string;
+  fecha_vencimiento: string;
+  notas: string | null;
+  created_at: string;
+};
+
 export type FoodSource = "manual" | "ia";
 
 export type Food = {

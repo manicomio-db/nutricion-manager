@@ -94,6 +94,17 @@ alter table public.progress_logs add column if not exists grasa_visceral numeric
 alter table public.progress_logs add column if not exists agua_corporal_l numeric(6, 2);
 alter table public.progress_logs add column if not exists tasa_metabolica_kcal integer;
 
+create table if not exists public.payments (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references public.profiles (id) on delete cascade,
+  admin_id uuid references public.profiles (id),
+  monto numeric(10, 2) not null default 0,
+  fecha_pago date not null default current_date,
+  fecha_vencimiento date not null,
+  notas text,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.nutrition_plan_requests (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references public.profiles (id) on delete cascade,
@@ -186,6 +197,7 @@ alter table public.profiles enable row level security;
 alter table public.foods enable row level security;
 alter table public.tips enable row level security;
 alter table public.tip_categories enable row level security;
+alter table public.payments enable row level security;
 alter table public.nutrition_plans enable row level security;
 alter table public.progress_logs enable row level security;
 alter table public.training_plan_requests enable row level security;
@@ -230,6 +242,15 @@ create policy "tip_categories_select_authenticated" on public.tip_categories
 
 drop policy if exists "tip_categories_write_admin" on public.tip_categories;
 create policy "tip_categories_write_admin" on public.tip_categories
+  for all using (public.is_admin()) with check (public.is_admin());
+
+-- payments ---------------------------------------------------------------------
+drop policy if exists "payments_select_own_or_admin" on public.payments;
+create policy "payments_select_own_or_admin" on public.payments
+  for select using (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "payments_write_admin" on public.payments;
+create policy "payments_write_admin" on public.payments
   for all using (public.is_admin()) with check (public.is_admin());
 
 -- nutrition_plans -----------------------------------------------------------

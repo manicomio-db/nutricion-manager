@@ -2,14 +2,23 @@ import Link from "next/link";
 import { requireClient } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { MacroRing } from "@/components/macro-ring";
 import { Dumbbell, BookOpen, Scale } from "lucide-react";
-import type { NutritionPlan, ProgressLog, TrainingPlan } from "@/lib/types";
+import type { NutritionPlan, Payment, ProgressLog, TrainingPlan } from "@/lib/types";
+import { todayLocal } from "@/lib/date";
+import { membershipStatus } from "@/lib/payments";
+
+const MEMBERSHIP_LABEL: Record<string, string> = {
+  activo: "Activa",
+  vencido: "Vencida",
+  sin_pago: "Sin registrar",
+};
 
 export default async function ClienteInicioPage() {
   const { profile, supabase } = await requireClient();
 
-  const [{ data: plan }, { data: trainingPlan }, { data: lastLog }] = await Promise.all([
+  const [{ data: plan }, { data: trainingPlan }, { data: lastLog }, { data: latestPayment }] = await Promise.all([
     supabase
       .from("nutrition_plans")
       .select("*")
@@ -31,7 +40,16 @@ export default async function ClienteInicioPage() {
       .order("fecha", { ascending: false })
       .limit(1)
       .maybeSingle<ProgressLog>(),
+    supabase
+      .from("payments")
+      .select("*")
+      .eq("client_id", profile.id)
+      .order("fecha_vencimiento", { ascending: false })
+      .limit(1)
+      .maybeSingle<Payment>(),
   ]);
+
+  const membershipStatusValue = membershipStatus(latestPayment?.fecha_vencimiento, todayLocal());
 
   const dayTotals = plan?.comidas.reduce(
     (acc, m) => {
@@ -64,6 +82,27 @@ export default async function ClienteInicioPage() {
         </h1>
         <p className="text-muted-foreground">Este es tu resumen de hoy.</p>
       </div>
+
+      {latestPayment && (
+        <Card>
+          <CardContent className="flex items-center justify-between pt-6 text-sm">
+            <span>
+              Suscripción vence <strong>{latestPayment.fecha_vencimiento}</strong>
+            </span>
+            <Badge
+              variant={
+                membershipStatusValue === "activo"
+                  ? "default"
+                  : membershipStatusValue === "vencido"
+                    ? "destructive"
+                    : "secondary"
+              }
+            >
+              {MEMBERSHIP_LABEL[membershipStatusValue]}
+            </Badge>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="neon-border">
         <CardHeader>
