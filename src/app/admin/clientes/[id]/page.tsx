@@ -20,6 +20,7 @@ import { ProgressLogForm } from "./progress-form";
 import { PaymentForm } from "./payment-form";
 import { ProgressChart } from "@/components/progress-chart";
 import { PhotoGallery } from "@/components/photo-gallery";
+import { DeleteClientButton } from "./delete-client-button";
 import { TrainingComposer } from "./training-composer";
 import { NutritionAiComposer } from "./nutrition-ai-composer";
 import { todayLocal } from "@/lib/date";
@@ -136,10 +137,13 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <h1 className="text-2xl font-bold">{client.full_name ?? "Cliente"}</h1>
           <p className="text-muted-foreground">{client.objetivo ?? "Sin objetivo definido"}</p>
         </div>
-        <Badge variant={status === "activo" ? "default" : status === "vencido" ? "destructive" : "secondary"}>
-          {MEMBERSHIP_LABEL[status]}
-          {latestPayment ? ` · vence ${latestPayment.fecha_vencimiento}` : ""}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant={status === "activo" ? "default" : status === "vencido" ? "destructive" : "secondary"}>
+            {MEMBERSHIP_LABEL[status]}
+            {latestPayment ? ` · vence ${latestPayment.fecha_vencimiento}` : ""}
+          </Badge>
+          <DeleteClientButton clientId={id} clientName={client.full_name ?? "este cliente"} />
+        </div>
       </div>
 
       <Tabs defaultValue="datos">

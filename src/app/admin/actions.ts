@@ -204,6 +204,12 @@ export async function deleteClient(formData: FormData) {
   if (!id || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
 
   const admin = createAdminClient();
+
+  const { data: files } = await admin.storage.from("progress-photos").list(id);
+  if (files && files.length > 0) {
+    await admin.storage.from("progress-photos").remove(files.map((f) => `${id}/${f.name}`));
+  }
+
   await admin.auth.admin.deleteUser(id);
 
   revalidatePath("/admin");
