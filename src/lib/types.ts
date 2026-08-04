@@ -4,6 +4,8 @@ export type Profile = {
   id: string;
   role: Role;
   full_name: string | null;
+  username: string | null;
+  telefono: string | null;
   objetivo: string | null;
   restricciones: string | null;
   altura_cm: number | null;

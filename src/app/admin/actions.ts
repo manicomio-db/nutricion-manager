@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/supabase/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { todayLocal } from "@/lib/date";
+import { normalizeUsername, usernameToEmail } from "@/lib/username";
 import type { Meal, TrainingPlanContent } from "@/lib/types";
 
 // --- Fotos de progreso ---------------------------------------------------------
@@ -152,29 +153,38 @@ export async function createClientAccount(
     return { error: "Falta configurar SUPABASE_SERVICE_ROLE_KEY en el servidor." };
   }
 
-  const email = String(formData.get("email") ?? "");
+  const fullName = String(formData.get("full_name") ?? "").trim();
+  const telefono = String(formData.get("telefono") ?? "").trim();
+  const usernameRaw = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
-  const fullName = String(formData.get("full_name") ?? "");
 
+  const username = normalizeUsername(usernameRaw);
+  if (!username) {
+    return { error: "Escribe un nombre de usuario válido (letras, números, puntos o guiones)." };
+  }
   if (password.length < 6) {
     return { error: "La contraseña debe tener al menos 6 caracteres." };
   }
 
   const admin = createAdminClient();
   const { data, error } = await admin.auth.admin.createUser({
-    email,
+    email: usernameToEmail(username),
     password,
     email_confirm: true,
-    user_metadata: { full_name: fullName, role: "cliente" },
+    user_metadata: { full_name: fullName, telefono, username, role: "cliente" },
   });
 
   if (error || !data.user) {
-    return { error: error?.message ?? "No se pudo crear la cuenta." };
+    const message =
+      error?.message.includes("already been registered") || error?.message.includes("already exists")
+        ? "Ese nombre de usuario ya está en uso."
+        : error?.message ?? "No se pudo crear la cuenta.";
+    return { error: message };
   }
 
   await admin
     .from("profiles")
-    .update({ role: "cliente", full_name: fullName })
+    .update({ role: "cliente", full_name: fullName, telefono, username })
     .eq("id", data.user.id);
 
   revalidatePath("/admin");
@@ -188,6 +198,7 @@ export async function updateClientProfile(formData: FormData) {
 
   const payload = {
     full_name: String(formData.get("full_name") ?? "").trim(),
+    telefono: String(formData.get("telefono") ?? "").trim() || null,
     objetivo: String(formData.get("objetivo") ?? "").trim() || null,
     restricciones: String(formData.get("restricciones") ?? "").trim() || null,
     altura_cm: Number(formData.get("altura_cm") ?? 0) || null,

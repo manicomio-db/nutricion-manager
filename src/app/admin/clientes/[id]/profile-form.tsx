@@ -18,8 +18,16 @@ export function ClientProfileForm({ client }: { client: Profile }) {
     <form action={onSubmit} className="flex flex-col gap-4">
       <input type="hidden" name="id" value={client.id} />
       <div className="flex flex-col gap-2">
+        <Label>Usuario (para iniciar sesión)</Label>
+        <Input value={client.username ?? "—"} disabled />
+      </div>
+      <div className="flex flex-col gap-2">
         <Label>Nombre completo</Label>
         <Input name="full_name" defaultValue={client.full_name ?? ""} required />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label>Teléfono</Label>
+        <Input name="telefono" type="tel" defaultValue={client.telefono ?? ""} />
       </div>
       <div className="flex flex-col gap-2">
         <Label>Objetivo</Label>

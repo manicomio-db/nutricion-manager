@@ -13,12 +13,21 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   role text not null default 'cliente' check (role in ('admin', 'cliente')),
   full_name text,
+  username text,
+  telefono text,
   objetivo text,
   restricciones text,
   altura_cm integer,
   notas text,
   created_at timestamptz not null default now()
 );
+
+alter table public.profiles add column if not exists username text;
+alter table public.profiles add column if not exists telefono text;
+
+create unique index if not exists profiles_username_unique
+  on public.profiles (username)
+  where username is not null;
 
 create table if not exists public.foods (
   id uuid primary key default gen_random_uuid(),
@@ -183,11 +192,13 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, role, full_name)
+  insert into public.profiles (id, role, full_name, username, telefono)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'role', 'cliente'),
-    new.raw_user_meta_data ->> 'full_name'
+    new.raw_user_meta_data ->> 'full_name',
+    new.raw_user_meta_data ->> 'username',
+    new.raw_user_meta_data ->> 'telefono'
   );
   return new;
 end;

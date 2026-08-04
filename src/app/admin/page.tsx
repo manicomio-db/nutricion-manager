@@ -48,7 +48,7 @@ export default async function AdminPage() {
       <Card>
         <CardHeader>
           <CardTitle>Crear cuenta de cliente</CardTitle>
-          <CardDescription>Le compartes el correo y contraseña para que entre a ver su plan.</CardDescription>
+          <CardDescription>Le compartes el usuario y contraseña para que entre a ver su plan.</CardDescription>
         </CardHeader>
         <CardContent>
           <CreateClientForm />
@@ -70,7 +70,10 @@ export default async function AdminPage() {
               >
                 <div className="flex flex-col">
                   <span className="font-medium">{c.full_name ?? "Sin nombre"}</span>
-                  <span className="text-muted-foreground">{c.objetivo ?? "Sin objetivo definido"}</span>
+                  <span className="text-muted-foreground">
+                    {c.username ? `@${c.username}` : "Sin usuario"}
+                    {c.objetivo ? ` · ${c.objetivo}` : ""}
+                  </span>
                 </div>
                 <Badge variant={status === "activo" ? "default" : status === "vencido" ? "destructive" : "secondary"}>
                   {MEMBERSHIP_LABEL[status]}

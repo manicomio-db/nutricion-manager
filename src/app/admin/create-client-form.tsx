@@ -24,16 +24,20 @@ export function CreateClientForm() {
   }, [state]);
 
   return (
-    <form ref={formRef} action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <div className="flex flex-1 flex-col gap-2">
+    <form ref={formRef} action={formAction} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
+      <div className="flex flex-col gap-2">
         <Label>Nombre completo</Label>
         <Input name="full_name" required />
       </div>
-      <div className="flex flex-1 flex-col gap-2">
-        <Label>Correo</Label>
-        <Input name="email" type="email" required />
+      <div className="flex flex-col gap-2">
+        <Label>Teléfono</Label>
+        <Input name="telefono" type="tel" placeholder="Ej: 555 123 4567" />
       </div>
-      <div className="flex flex-1 flex-col gap-2">
+      <div className="flex flex-col gap-2">
+        <Label>Usuario</Label>
+        <Input name="username" placeholder="ej: juanperez" pattern="[a-zA-Z0-9._-]+" required />
+      </div>
+      <div className="flex flex-col gap-2">
         <Label>Contraseña temporal</Label>
         <Input name="password" type="password" minLength={6} required />
       </div>

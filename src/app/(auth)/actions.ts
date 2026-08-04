@@ -2,18 +2,21 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isEmail, usernameToEmail } from "@/lib/username";
 
 export type AuthState = { error: string | null };
 
 export async function login(_prevState: AuthState, formData: FormData): Promise<AuthState> {
-  const email = String(formData.get("email") ?? "");
+  const identifier = String(formData.get("identifier") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+
+  const email = isEmail(identifier) ? identifier : usernameToEmail(identifier);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: "Correo o contraseña incorrectos." };
+    return { error: "Usuario/correo o contraseña incorrectos." };
   }
 
   const {
