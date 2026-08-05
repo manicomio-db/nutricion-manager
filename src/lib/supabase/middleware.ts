@@ -48,7 +48,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (isProtected || pathname === "/login")) {
+  if (user && (isProtected || pathname === "/login" || pathname === "/signup")) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -63,7 +63,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    if (pathname === "/login") {
+    if (pathname === "/login" || pathname === "/signup") {
       const url = request.nextUrl.clone();
       url.pathname = ROLE_HOME[role] ?? "/login";
       return NextResponse.redirect(url);
