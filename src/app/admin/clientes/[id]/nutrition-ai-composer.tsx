@@ -64,6 +64,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
   const [title, setTitle] = useState(`Plan nutricional para ${request.clientNombre}`);
   const [source, setSource] = useState<"ia" | "manual">("manual");
   const [comidas, setComidas] = useState<Meal[]>([]);
+  const [estimatingKey, setEstimatingKey] = useState<string | null>(null);
 
   async function generar() {
     setGenerating(true);
@@ -135,6 +136,77 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
           : m
       )
     );
+  }
+
+  function updateGramos(mealIdx: number, itemIdx: number, newGramos: number) {
+    setComidas((c) =>
+      c.map((m, idx) =>
+        idx === mealIdx
+          ? {
+              ...m,
+              items: m.items.map((it, j) => {
+                if (j !== itemIdx) return it;
+                const oldGramos = it.gramos;
+                const factor = oldGramos > 0 ? newGramos / oldGramos : 0;
+                return {
+                  ...it,
+                  gramos: newGramos,
+                  kcal: round(it.kcal * factor),
+                  proteina: round(it.proteina * factor),
+                  carbos: round(it.carbos * factor),
+                  grasas: round(it.grasas * factor),
+                };
+              }),
+            }
+          : m
+      )
+    );
+  }
+
+  async function estimarItem(mealIdx: number, itemIdx: number) {
+    const item = comidas[mealIdx]?.items[itemIdx];
+    if (!item || !item.food_nombre.trim()) {
+      toast.error("Escribe primero el nombre del alimento.");
+      return;
+    }
+    const key = `${mealIdx}-${itemIdx}`;
+    setEstimatingKey(key);
+    try {
+      const res = await fetch("/api/foods/estimate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: item.food_nombre }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Error estimando");
+      const gramos = item.gramos || 100;
+      const factor = gramos / 100;
+      setComidas((c) =>
+        c.map((m, idx) =>
+          idx === mealIdx
+            ? {
+                ...m,
+                items: m.items.map((it, j) =>
+                  j === itemIdx
+                    ? {
+                        ...it,
+                        kcal: round(data.macros.kcal_100g * factor),
+                        proteina: round(data.macros.proteina_100g * factor),
+                        carbos: round(data.macros.carbos_100g * factor),
+                        grasas: round(data.macros.grasas_100g * factor),
+                      }
+                    : it
+                ),
+              }
+            : m
+        )
+      );
+      toast.success("Macros actualizados.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error estimando el alimento");
+    } finally {
+      setEstimatingKey(null);
+    }
   }
 
   function removeItem(mealIdx: number, itemIdx: number) {
@@ -251,7 +323,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
                     </Button>
                   </div>
                   {meal.items.length > 0 && (
-                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-2 px-1 text-xs font-medium text-muted-foreground">
+                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto_auto] gap-2 px-1 text-xs font-medium text-muted-foreground">
                       <span>Alimento</span>
                       <span>Gramos</span>
                       <span>Calorías</span>
@@ -259,50 +331,64 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
                       <span>Carbohidratos</span>
                       <span>Grasas</span>
                       <span />
+                      <span />
                     </div>
                   )}
-                  {meal.items.map((item, itemIdx) => (
-                    <div key={itemIdx} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-2">
-                      <Input
-                        placeholder="Alimento"
-                        value={item.food_nombre}
-                        onChange={(e) => updateItem(mealIdx, itemIdx, "food_nombre", e.target.value)}
-                      />
-                      <Input
-                        placeholder="Gramos"
-                        type="number"
-                        value={item.gramos}
-                        onChange={(e) => updateItem(mealIdx, itemIdx, "gramos", e.target.value)}
-                      />
-                      <Input
-                        placeholder="Kcal"
-                        type="number"
-                        value={item.kcal}
-                        onChange={(e) => updateItem(mealIdx, itemIdx, "kcal", e.target.value)}
-                      />
-                      <Input
-                        placeholder="Prot"
-                        type="number"
-                        value={item.proteina}
-                        onChange={(e) => updateItem(mealIdx, itemIdx, "proteina", e.target.value)}
-                      />
-                      <Input
-                        placeholder="Carbs"
-                        type="number"
-                        value={item.carbos}
-                        onChange={(e) => updateItem(mealIdx, itemIdx, "carbos", e.target.value)}
-                      />
-                      <Input
-                        placeholder="Grasas"
-                        type="number"
-                        value={item.grasas}
-                        onChange={(e) => updateItem(mealIdx, itemIdx, "grasas", e.target.value)}
-                      />
-                      <Button type="button" size="sm" variant="ghost" onClick={() => removeItem(mealIdx, itemIdx)}>
-                        ✕
-                      </Button>
-                    </div>
-                  ))}
+                  {meal.items.map((item, itemIdx) => {
+                    const key = `${mealIdx}-${itemIdx}`;
+                    return (
+                      <div key={itemIdx} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto_auto] gap-2">
+                        <Input
+                          placeholder="Alimento"
+                          value={item.food_nombre}
+                          onChange={(e) => updateItem(mealIdx, itemIdx, "food_nombre", e.target.value)}
+                        />
+                        <Input
+                          placeholder="Gramos"
+                          type="number"
+                          value={item.gramos}
+                          onChange={(e) => updateGramos(mealIdx, itemIdx, Number(e.target.value) || 0)}
+                        />
+                        <Input
+                          placeholder="Kcal"
+                          type="number"
+                          value={item.kcal}
+                          onChange={(e) => updateItem(mealIdx, itemIdx, "kcal", e.target.value)}
+                        />
+                        <Input
+                          placeholder="Prot"
+                          type="number"
+                          value={item.proteina}
+                          onChange={(e) => updateItem(mealIdx, itemIdx, "proteina", e.target.value)}
+                        />
+                        <Input
+                          placeholder="Carbs"
+                          type="number"
+                          value={item.carbos}
+                          onChange={(e) => updateItem(mealIdx, itemIdx, "carbos", e.target.value)}
+                        />
+                        <Input
+                          placeholder="Grasas"
+                          type="number"
+                          value={item.grasas}
+                          onChange={(e) => updateItem(mealIdx, itemIdx, "grasas", e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          title="Volver a estimar con IA para este alimento y gramaje"
+                          disabled={estimatingKey === key}
+                          onClick={() => estimarItem(mealIdx, itemIdx)}
+                        >
+                          {estimatingKey === key ? "..." : "↻"}
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => removeItem(mealIdx, itemIdx)}>
+                          ✕
+                        </Button>
+                      </div>
+                    );
+                  })}
                   <Button type="button" size="sm" variant="outline" onClick={() => addItem(mealIdx)} className="w-fit">
                     + Alimento
                   </Button>
