@@ -42,6 +42,21 @@ function mealTotals(meal: Meal) {
   );
 }
 
+function dayTotals(comidas: Meal[]) {
+  return comidas.reduce(
+    (acc, m) => {
+      const t = mealTotals(m);
+      return {
+        kcal: acc.kcal + t.kcal,
+        proteina: acc.proteina + t.proteina,
+        carbos: acc.carbos + t.carbos,
+        grasas: acc.grasas + t.grasas,
+      };
+    },
+    { kcal: 0, proteina: 0, carbos: 0, grasas: 0 }
+  );
+}
+
 export function NutritionAiComposer({ request }: { request: RequestInfo }) {
   const [expanded, setExpanded] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -208,6 +223,23 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
               <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título del plan" />
             </div>
 
+            {comidas.length > 0 && (
+              <div className="flex flex-wrap gap-4 rounded-md border bg-muted/30 p-3 text-sm">
+                <span>
+                  <strong>{round(dayTotals(comidas).kcal)}</strong> kcal
+                </span>
+                <span>
+                  <strong>{round(dayTotals(comidas).proteina)}g</strong> proteína
+                </span>
+                <span>
+                  <strong>{round(dayTotals(comidas).carbos)}g</strong> carbos
+                </span>
+                <span>
+                  <strong>{round(dayTotals(comidas).grasas)}g</strong> grasas
+                </span>
+              </div>
+            )}
+
             {comidas.map((meal, mealIdx) => {
               const totals = mealTotals(meal);
               return (
@@ -218,6 +250,17 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
                       Quitar comida
                     </Button>
                   </div>
+                  {meal.items.length > 0 && (
+                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-2 px-1 text-xs font-medium text-muted-foreground">
+                      <span>Alimento</span>
+                      <span>Gramos</span>
+                      <span>Calorías</span>
+                      <span>Proteína</span>
+                      <span>Carbohidratos</span>
+                      <span>Grasas</span>
+                      <span />
+                    </div>
+                  )}
                   {meal.items.map((item, itemIdx) => (
                     <div key={itemIdx} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-2">
                       <Input
