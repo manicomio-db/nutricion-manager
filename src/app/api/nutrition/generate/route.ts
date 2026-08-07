@@ -16,10 +16,26 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { objetivo, restricciones, comidas_dia } = body as {
+  const {
+    objetivo,
+    restricciones,
+    comidas_dia,
+    altura_cm,
+    peso_kg,
+    grasa_pct,
+    grasa_visceral,
+    masa_muscular_kg,
+    agua_corporal_l,
+  } = body as {
     objetivo: string;
     restricciones: string | null;
     comidas_dia: number | null;
+    altura_cm?: number | null;
+    peso_kg?: number | null;
+    grasa_pct?: number | null;
+    grasa_visceral?: number | null;
+    masa_muscular_kg?: number | null;
+    agua_corporal_l?: number | null;
   };
 
   if (!objetivo) {
@@ -30,10 +46,23 @@ export async function POST(req: Request) {
 
   const comidas = comidas_dia && comidas_dia > 0 ? comidas_dia : 4;
 
+  const datosCorporales = [
+    altura_cm ? `Altura: ${altura_cm} cm` : null,
+    peso_kg ? `Peso: ${peso_kg} kg` : null,
+    grasa_pct ? `% de grasa corporal: ${grasa_pct}%` : null,
+    grasa_visceral ? `Grasa visceral: ${grasa_visceral}` : null,
+    masa_muscular_kg ? `Masa muscular: ${masa_muscular_kg} kg` : null,
+    agua_corporal_l ? `Agua corporal: ${agua_corporal_l} L` : null,
+  ]
+    .filter(Boolean)
+    .join("\n- ");
+
   const prompt = `Eres un nutricionista experto. Diseña un plan de alimentación de un día para un cliente con estos datos:
 - Objetivo: ${objetivo}
 - Restricciones o alergias: ${restricciones || "ninguna reportada"}
-- Comidas al día: ${comidas}
+- Comidas al día: ${comidas}${datosCorporales ? `\n- ${datosCorporales}` : ""}
+
+Usa los datos corporales (si están disponibles) para calcular un estimado de calorías y macros diarios adecuado (gasto energético, proteína por kg de peso/masa muscular, etc.) antes de repartirlo en las comidas. Si no hay datos corporales, usa buen juicio nutricional general según el objetivo.
 
 Responde ÚNICAMENTE con un JSON válido (sin markdown, sin texto extra) con esta forma exacta:
 {

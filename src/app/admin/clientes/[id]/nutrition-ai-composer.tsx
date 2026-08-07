@@ -18,6 +18,12 @@ type RequestInfo = {
   comidasDia: number | null;
   notas: string | null;
   status: string;
+  alturaCm?: number | null;
+  pesoKg?: number | null;
+  grasaPct?: number | null;
+  grasaVisceral?: number | null;
+  masaMuscularKg?: number | null;
+  aguaCorporalL?: number | null;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -76,6 +82,12 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
           objetivo: request.objetivo,
           restricciones: request.restricciones,
           comidas_dia: request.comidasDia,
+          altura_cm: request.alturaCm,
+          peso_kg: request.pesoKg,
+          grasa_pct: request.grasaPct,
+          grasa_visceral: request.grasaVisceral,
+          masa_muscular_kg: request.masaMuscularKg,
+          agua_corporal_l: request.aguaCorporalL,
         }),
       });
       const data = await res.json();
@@ -252,6 +264,22 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
               {request.restricciones ? ` · Restricciones: ${request.restricciones}` : ""}
               {request.notas ? ` · Notas: ${request.notas}` : ""}
             </CardDescription>
+            {(request.alturaCm ||
+              request.pesoKg ||
+              request.grasaPct ||
+              request.grasaVisceral ||
+              request.masaMuscularKg ||
+              request.aguaCorporalL) && (
+              <p className="text-xs text-muted-foreground">
+                Datos corporales que usará la IA:
+                {request.alturaCm ? ` altura ${request.alturaCm}cm ·` : ""}
+                {request.pesoKg ? ` peso ${request.pesoKg}kg ·` : ""}
+                {request.grasaPct ? ` ${request.grasaPct}% grasa ·` : ""}
+                {request.grasaVisceral ? ` grasa visceral ${request.grasaVisceral} ·` : ""}
+                {request.masaMuscularKg ? ` ${request.masaMuscularKg}kg músculo ·` : ""}
+                {request.aguaCorporalL ? ` ${request.aguaCorporalL}L agua` : ""}
+              </p>
+            )}
           </div>
           <Badge variant="secondary">{STATUS_LABEL[request.status]}</Badge>
         </div>

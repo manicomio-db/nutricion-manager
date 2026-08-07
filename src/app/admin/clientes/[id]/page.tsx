@@ -110,6 +110,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
   const activeTrainingRequests = (trainingRequests ?? []).filter((r) => r.status !== "completado");
   const activeNutritionRequests = (nutritionRequests ?? []).filter((r) => r.status !== "completado");
+  const latestLog = logs && logs.length > 0 ? logs[logs.length - 1] : null;
   const latestPayment = payments?.[0] ?? null;
   const status = membershipStatus(latestPayment?.fecha_vencimiento, todayLocal());
 
@@ -230,6 +231,12 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                       comidasDia: r.comidas_dia,
                       notas: r.notas,
                       status: r.status,
+                      alturaCm: client.altura_cm,
+                      pesoKg: latestLog?.peso_kg ?? null,
+                      grasaPct: latestLog?.grasa_pct ?? null,
+                      grasaVisceral: latestLog?.grasa_visceral ?? null,
+                      masaMuscularKg: latestLog?.masa_muscular_kg ?? null,
+                      aguaCorporalL: latestLog?.agua_corporal_l ?? null,
                     }}
                   />
                 ))}
