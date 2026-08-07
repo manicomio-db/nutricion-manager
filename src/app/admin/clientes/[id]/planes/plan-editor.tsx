@@ -208,7 +208,7 @@ export function PlanEditor({
                     onValueChange={(v) => updateItemFood(mealIdx, itemIdx, String(v))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Alimento" />
+                      <SelectValue placeholder={item.food_nombre || "Alimento"} />
                     </SelectTrigger>
                     <SelectContent>
                       {foods.map((f) => (
