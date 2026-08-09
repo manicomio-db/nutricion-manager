@@ -83,7 +83,7 @@ export function TrainingComposer({ request }: { request: RequestInfo }) {
       ...c,
       dias: c.dias.map((d, idx) =>
         idx === diaIdx
-          ? { ...d, ejercicios: [...d.ejercicios, { nombre: "", series: "3", reps: "10" }] }
+          ? { ...d, ejercicios: [...d.ejercicios, { nombre: "", series: "3", reps: "10", video_url: "" }] }
           : d
       ),
     }));
@@ -92,7 +92,7 @@ export function TrainingComposer({ request }: { request: RequestInfo }) {
   function updateEjercicio(
     diaIdx: number,
     ejIdx: number,
-    field: "nombre" | "series" | "reps" | "notas",
+    field: "nombre" | "series" | "reps" | "notas" | "video_url",
     value: string
   ) {
     setContenido((c) => ({
@@ -211,7 +211,7 @@ export function TrainingComposer({ request }: { request: RequestInfo }) {
                   </Button>
                 </div>
                 {dia.ejercicios.map((ej, j) => (
-                  <div key={j} className="grid grid-cols-[2fr_1fr_1fr_2fr_auto] gap-2">
+                  <div key={j} className="grid grid-cols-[2fr_1fr_1fr_2fr_2fr_auto] gap-2">
                     <Input
                       placeholder="Ejercicio"
                       value={ej.nombre}
@@ -231,6 +231,11 @@ export function TrainingComposer({ request }: { request: RequestInfo }) {
                       placeholder="Notas"
                       value={ej.notas ?? ""}
                       onChange={(e) => updateEjercicio(i, j, "notas", e.target.value)}
+                    />
+                    <Input
+                      placeholder="Link de video (opcional)"
+                      value={ej.video_url ?? ""}
+                      onChange={(e) => updateEjercicio(i, j, "video_url", e.target.value)}
                     />
                     <Button
                       type="button"

@@ -62,9 +62,21 @@ export default async function ClienteEntrenamientoPage() {
                   <p className="font-semibold">{dia.dia}</p>
                   <ul className="mt-2 flex flex-col gap-1 text-sm">
                     {dia.ejercicios.map((ej, j) => (
-                      <li key={j}>
-                        {ej.nombre} — {ej.series} series x {ej.reps} reps
-                        {ej.notas && <span className="text-muted-foreground"> ({ej.notas})</span>}
+                      <li key={j} className="flex flex-wrap items-center gap-2">
+                        <span>
+                          {ej.nombre} — {ej.series} series x {ej.reps} reps
+                          {ej.notas && <span className="text-muted-foreground"> ({ej.notas})</span>}
+                        </span>
+                        {ej.video_url && (
+                          <a
+                            href={ej.video_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline underline-offset-4"
+                          >
+                            Ver video
+                          </a>
+                        )}
                       </li>
                     ))}
                   </ul>

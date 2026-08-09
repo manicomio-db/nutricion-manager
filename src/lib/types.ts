@@ -143,6 +143,7 @@ export type Ejercicio = {
   series: string;
   reps: string;
   notas?: string;
+  video_url?: string | null;
 };
 
 export type DiaEntrenamiento = {
