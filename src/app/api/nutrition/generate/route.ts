@@ -62,9 +62,9 @@ export async function POST(req: Request) {
 - Restricciones o alergias: ${restricciones || "ninguna reportada"}
 - Comidas al día: ${comidas}${datosCorporales ? `\n- ${datosCorporales}` : ""}
 
-Usa los datos corporales (si están disponibles) para calcular un estimado de calorías y macros diarios adecuado (gasto energético, proteína por kg de peso/masa muscular, etc.) antes de repartirlo en las comidas. Si no hay datos corporales, usa buen juicio nutricional general según el objetivo.
+Si hay datos corporales, ténlos en cuenta internamente (gasto energético, proteína por kg de peso/masa muscular, etc.) para definir las calorías y macros del día. Si no hay datos corporales, usa buen juicio nutricional general según el objetivo.
 
-Responde ÚNICAMENTE con un JSON válido (sin markdown, sin texto extra) con esta forma exacta:
+No escribas cálculos, explicaciones ni ningún texto fuera del JSON. Tu respuesta completa debe ser ÚNICAMENTE el JSON (sin markdown, sin comentarios) con esta forma exacta:
 {
   "comidas": [
     {
@@ -83,12 +83,12 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin texto extra) con est
   ]
 }
 
-Incluye exactamente ${comidas} comidas. Los valores kcal/proteina/carbos/grasas de cada item deben corresponder a la porción indicada en gramos (no a 100g). Evita alimentos que choquen con las restricciones reportadas.`;
+Incluye exactamente ${comidas} comidas. Los valores kcal/proteina/carbos/grasas de cada item deben corresponder a la porción indicada en gramos (no a 100g). Evita alimentos que choquen con las restricciones reportadas. Recuerda: responde solo con el JSON, empezando directamente con "{".`;
 
   try {
     const message = await anthropic.messages.create({
       model: "claude-sonnet-5",
-      max_tokens: 4000,
+      max_tokens: 8000,
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -97,6 +97,10 @@ Incluye exactamente ${comidas} comidas. Los valores kcal/proteina/carbos/grasas 
 
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error("Nutrition AI: no JSON in response.", {
+        stopReason: message.stop_reason,
+        rawPreview: raw.slice(0, 500),
+      });
       return NextResponse.json({ error: "La IA no devolvió un JSON válido." }, { status: 502 });
     }
 
