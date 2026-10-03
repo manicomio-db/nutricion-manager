@@ -237,6 +237,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                       grasaVisceral: latestLog?.grasa_visceral ?? null,
                       masaMuscularKg: latestLog?.masa_muscular_kg ?? null,
                       aguaCorporalL: latestLog?.agua_corporal_l ?? null,
+                      tasaMetabolicaKcal: latestLog?.tasa_metabolica_kcal ?? null,
                     }}
                   />
                 ))}

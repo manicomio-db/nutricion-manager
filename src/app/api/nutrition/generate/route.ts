@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireProfile } from "@/lib/supabase/session";
+import type { Meal } from "@/lib/types";
 
 export async function POST(req: Request) {
   const { profile } = await requireProfile();
@@ -26,7 +27,9 @@ export async function POST(req: Request) {
     grasa_visceral,
     masa_muscular_kg,
     agua_corporal_l,
+    metas,
   } = body as {
+    metas?: { kcal: number; proteina: number; carbos: number; grasas: number } | null;
     objetivo: string;
     restricciones: string | null;
     comidas_dia: number | null;
@@ -57,12 +60,18 @@ export async function POST(req: Request) {
     .filter(Boolean)
     .join("\n- ");
 
+  const hasMetas = !!metas && metas.kcal > 0;
+
   const prompt = `Eres un nutricionista experto. Diseña un plan de alimentación de un día para un cliente con estos datos:
 - Objetivo: ${objetivo}
 - Restricciones o alergias: ${restricciones || "ninguna reportada"}
 - Comidas al día: ${comidas}${datosCorporales ? `\n- ${datosCorporales}` : ""}
 
-Si hay datos corporales, ténlos en cuenta internamente (gasto energético, proteína por kg de peso/masa muscular, etc.) para definir las calorías y macros del día. Si no hay datos corporales, usa buen juicio nutricional general según el objetivo.
+${
+  hasMetas
+    ? `Metas diarias OBLIGATORIAS (ya calculadas por el nutricionista): ${metas!.kcal} kcal, ${metas!.proteina} g de proteína, ${metas!.carbos} g de carbohidratos, ${metas!.grasas} g de grasas. La suma de todos los alimentos del día debe acercarse lo más posible a esas metas (kcal y los tres macros). Reparte las metas de forma lógica entre las comidas (más proteína distribuida, carbohidratos alrededor del entrenamiento) y usa porciones realistas.`
+    : "Si hay datos corporales, ténlos en cuenta internamente (gasto energético, proteína por kg de peso/masa muscular, etc.) para definir las calorías y macros del día. Si no hay datos corporales, usa buen juicio nutricional general según el objetivo."
+}
 
 No escribas cálculos, explicaciones ni ningún texto fuera del JSON. Tu respuesta completa debe ser ÚNICAMENTE el JSON (sin markdown, sin comentarios) con esta forma exacta:
 {
@@ -105,7 +114,33 @@ Incluye exactamente ${comidas} comidas. Los valores kcal/proteina/carbos/grasas 
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-    return NextResponse.json({ comidas: parsed.comidas });
+    let comidasOut: Meal[] = parsed.comidas;
+
+    // La IA suele desviarse un poco al sumar: escala las porciones para que las kcal
+    // del día coincidan con la meta (los macros se escalan en la misma proporción).
+    if (hasMetas) {
+      const total = comidasOut.reduce(
+        (s, m) => s + m.items.reduce((s2, i) => s2 + (Number(i.kcal) || 0), 0),
+        0
+      );
+      const factor = total > 0 ? metas!.kcal / total : 1;
+      if (factor > 0.6 && factor < 1.6 && Math.abs(factor - 1) > 0.01) {
+        const r1 = (n: number) => Math.round(n * 10) / 10;
+        comidasOut = comidasOut.map((m) => ({
+          ...m,
+          items: m.items.map((i) => ({
+            ...i,
+            gramos: Math.round(i.gramos * factor),
+            kcal: r1(i.kcal * factor),
+            proteina: r1(i.proteina * factor),
+            carbos: r1(i.carbos * factor),
+            grasas: r1(i.grasas * factor),
+          })),
+        }));
+      }
+    }
+
+    return NextResponse.json({ comidas: comidasOut });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Error generando el plan con IA." }, { status: 500 });

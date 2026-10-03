@@ -7,6 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { Meal, MealItem } from "@/lib/types";
+import {
+  ACTIVIDAD_LABEL,
+  AJUSTE_LABEL,
+  computeTargets,
+  inferAjuste,
+  type Actividad,
+  type Ajuste,
+  type Metas,
+} from "@/lib/nutrition-targets";
 import { saveNutritionPlanFromRequest, markNutritionInProgress, discardNutritionRequest } from "../../actions";
 
 type RequestInfo = {
@@ -24,7 +33,16 @@ type RequestInfo = {
   grasaVisceral?: number | null;
   masaMuscularKg?: number | null;
   aguaCorporalL?: number | null;
+  tasaMetabolicaKcal?: number | null;
 };
+
+type MetasForm = { kcal: string; proteina: string; carbos: string; grasas: string };
+
+function metasToForm(m: Metas | null): MetasForm {
+  return m
+    ? { kcal: String(m.kcal), proteina: String(m.proteina), carbos: String(m.carbos), grasas: String(m.grasas) }
+    : { kcal: "", proteina: "", carbos: "", grasas: "" };
+}
 
 const STATUS_LABEL: Record<string, string> = {
   pendiente: "Pendiente",
@@ -71,6 +89,45 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
   const [source, setSource] = useState<"ia" | "manual">("manual");
   const [comidas, setComidas] = useState<Meal[]>([]);
   const [estimatingKey, setEstimatingKey] = useState<string | null>(null);
+  const [actividad, setActividad] = useState<Actividad>("moderado");
+  const [ajuste, setAjuste] = useState<Ajuste>(() => inferAjuste(request.objetivo));
+  const [metas, setMetas] = useState<MetasForm>(() =>
+    metasToForm(
+      computeTargets({
+        pesoKg: request.pesoKg,
+        grasaPct: request.grasaPct,
+        tasaMetabolicaKcal: request.tasaMetabolicaKcal,
+        actividad: "moderado",
+        ajuste: inferAjuste(request.objetivo),
+      })
+    )
+  );
+
+  function recalcularMetas(act: Actividad, aj: Ajuste) {
+    setActividad(act);
+    setAjuste(aj);
+    setMetas(
+      metasToForm(
+        computeTargets({
+          pesoKg: request.pesoKg,
+          grasaPct: request.grasaPct,
+          tasaMetabolicaKcal: request.tasaMetabolicaKcal,
+          actividad: act,
+          ajuste: aj,
+        })
+      )
+    );
+  }
+
+  const metasNum: Metas | null =
+    Number(metas.kcal) > 0
+      ? {
+          kcal: Number(metas.kcal),
+          proteina: Number(metas.proteina) || 0,
+          carbos: Number(metas.carbos) || 0,
+          grasas: Number(metas.grasas) || 0,
+        }
+      : null;
 
   async function generar() {
     setGenerating(true);
@@ -88,6 +145,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
           grasa_visceral: request.grasaVisceral,
           masa_muscular_kg: request.masaMuscularKg,
           agua_corporal_l: request.aguaCorporalL,
+          metas: metasNum,
         }),
       });
       const data = await res.json();
@@ -285,6 +343,64 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3">
+          <p className="text-sm font-medium">Metas diarias del plan</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+              Nivel de actividad
+              <select
+                className="h-9 rounded-md border bg-background px-2 text-sm text-foreground"
+                value={actividad}
+                onChange={(e) => recalcularMetas(e.target.value as Actividad, ajuste)}
+              >
+                {Object.entries(ACTIVIDAD_LABEL).map(([k, label]) => (
+                  <option key={k} value={k}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+              Objetivo del plan
+              <select
+                className="h-9 rounded-md border bg-background px-2 text-sm text-foreground"
+                value={ajuste}
+                onChange={(e) => recalcularMetas(actividad, e.target.value as Ajuste)}
+              >
+                {Object.entries(AJUSTE_LABEL).map(([k, label]) => (
+                  <option key={k} value={k}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {(
+              [
+                ["kcal", "Calorías"],
+                ["proteina", "Proteína (g)"],
+                ["carbos", "Carbos (g)"],
+                ["grasas", "Grasas (g)"],
+              ] as const
+            ).map(([k, label]) => (
+              <label key={k} className="flex flex-col gap-1 text-xs text-muted-foreground">
+                {label}
+                <Input
+                  type="number"
+                  value={metas[k]}
+                  onChange={(e) => setMetas((m) => ({ ...m, [k]: e.target.value }))}
+                />
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {metasNum
+              ? "Calculadas con la tasa metabolica/masa magra del cliente. Puedes editarlas; la IA ajustará el plan a estas metas."
+              : "Sin peso o % de grasa registrado no se pueden calcular: escríbelas a mano o registra una medición en Progreso."}
+          </p>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={generar} disabled={generating}>
             {generating ? "Generando..." : "Generar con IA"}
@@ -325,18 +441,38 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
 
             {comidas.length > 0 && (
               <div className="flex flex-wrap gap-4 rounded-md border bg-muted/30 p-3 text-sm">
-                <span>
-                  <strong>{round(dayTotals(comidas).kcal)}</strong> kcal
-                </span>
-                <span>
-                  <strong>{round(dayTotals(comidas).proteina)}g</strong> proteína
-                </span>
-                <span>
-                  <strong>{round(dayTotals(comidas).carbos)}g</strong> carbos
-                </span>
-                <span>
-                  <strong>{round(dayTotals(comidas).grasas)}g</strong> grasas
-                </span>
+                {(
+                  [
+                    ["kcal", "kcal", ""],
+                    ["proteina", "proteína", "g"],
+                    ["carbos", "carbos", "g"],
+                    ["grasas", "grasas", "g"],
+                  ] as const
+                ).map(([k, label, unit]) => {
+                  const actual = round(dayTotals(comidas)[k]);
+                  const diff = metasNum ? round(actual - metasNum[k]) : null;
+                  return (
+                    <span key={k}>
+                      <strong>
+                        {actual}
+                        {unit}
+                      </strong>{" "}
+                      {label}
+                      {metasNum && diff !== null && (
+                        <span
+                          className={
+                            Math.abs(diff) <= metasNum[k] * 0.05 ? "text-green-500" : "text-amber-500"
+                          }
+                        >
+                          {" "}
+                          (meta {metasNum[k]}
+                          {unit}, {diff > 0 ? "+" : ""}
+                          {diff})
+                        </span>
+                      )}
+                    </span>
+                  );
+                })}
               </div>
             )}
 
