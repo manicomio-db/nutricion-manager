@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import {
 import { saveNutritionPlanFromRequest, markNutritionInProgress, discardNutritionRequest } from "../../actions";
 
 type RequestInfo = {
-  id: string;
+  id: string | null; // null = plan directo (sin solicitud del cliente)
   clientId: string;
   clientNombre: string;
   objetivo: string;
@@ -82,7 +83,12 @@ function dayTotals(comidas: Meal[]) {
 }
 
 export function NutritionAiComposer({ request }: { request: RequestInfo }) {
-  const [expanded, setExpanded] = useState(false);
+  const router = useRouter();
+  const directo = request.id === null;
+  const [expanded, setExpanded] = useState(directo);
+  const [objetivo, setObjetivo] = useState(request.objetivo);
+  const [restricciones, setRestricciones] = useState(request.restricciones ?? "");
+  const [comidasDia, setComidasDia] = useState(String(request.comidasDia ?? 4));
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(`Plan nutricional para ${request.clientNombre}`);
@@ -130,15 +136,19 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
       : null;
 
   async function generar() {
+    if (!objetivo.trim()) {
+      toast.error("Escribe el objetivo del cliente.");
+      return;
+    }
     setGenerating(true);
     try {
       const res = await fetch("/api/nutrition/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          objetivo: request.objetivo,
-          restricciones: request.restricciones,
-          comidas_dia: request.comidasDia,
+          objetivo,
+          restricciones: restricciones.trim() || null,
+          comidas_dia: Number(comidasDia) || 4,
           altura_cm: request.alturaCm,
           peso_kg: request.pesoKg,
           grasa_pct: request.grasaPct,
@@ -302,6 +312,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
         source,
       });
       toast.success("Plan asignado al cliente.");
+      if (directo) router.push(`/admin/clientes/${request.clientId}`);
     } catch {
       toast.error("No se pudo guardar el plan.");
     } finally {
@@ -315,13 +326,46 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>
-              {request.clientNombre} — {request.objetivo}
+              {directo
+                ? `Generar plan para ${request.clientNombre}`
+                : `${request.clientNombre} — ${request.objetivo}`}
             </CardTitle>
-            <CardDescription>
-              {request.comidasDia ?? 4} comidas/día
-              {request.restricciones ? ` · Restricciones: ${request.restricciones}` : ""}
-              {request.notas ? ` · Notas: ${request.notas}` : ""}
-            </CardDescription>
+            {directo ? (
+              <div className="mt-3 grid gap-2 sm:grid-cols-[2fr_1fr]">
+                <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+                  Objetivo del cliente
+                  <Input
+                    value={objetivo}
+                    onChange={(e) => setObjetivo(e.target.value)}
+                    placeholder="Ej: Bajar grasa y mantener músculo"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+                  Comidas al día
+                  <Input
+                    type="number"
+                    min={1}
+                    max={8}
+                    value={comidasDia}
+                    onChange={(e) => setComidasDia(e.target.value)}
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs text-muted-foreground sm:col-span-2">
+                  Restricciones / alergias
+                  <Input
+                    value={restricciones}
+                    onChange={(e) => setRestricciones(e.target.value)}
+                    placeholder="Opcional"
+                  />
+                </label>
+              </div>
+            ) : (
+              <CardDescription>
+                {request.comidasDia ?? 4} comidas/día
+                {request.restricciones ? ` · Restricciones: ${request.restricciones}` : ""}
+                {request.notas ? ` · Notas: ${request.notas}` : ""}
+              </CardDescription>
+            )}
             {(request.alturaCm ||
               request.pesoKg ||
               request.grasaPct ||
@@ -339,7 +383,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
               </p>
             )}
           </div>
-          <Badge variant="secondary">{STATUS_LABEL[request.status]}</Badge>
+          {!directo && <Badge variant="secondary">{STATUS_LABEL[request.status]}</Badge>}
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -405,32 +449,36 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
           <Button type="button" onClick={generar} disabled={generating}>
             {generating ? "Generando..." : "Generar con IA"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => setExpanded((e) => !e)}>
-            {expanded ? "Ocultar editor" : "Editar manualmente"}
-          </Button>
-          {request.status === "pendiente" && (
+          {!directo && (
+            <Button type="button" variant="outline" onClick={() => setExpanded((e) => !e)}>
+              {expanded ? "Ocultar editor" : "Editar manualmente"}
+            </Button>
+          )}
+          {!directo && request.status === "pendiente" && (
             <form action={markNutritionInProgress}>
-              <input type="hidden" name="request_id" value={request.id} />
+              <input type="hidden" name="request_id" value={request.id ?? ""} />
               <input type="hidden" name="client_id" value={request.clientId} />
               <Button type="submit" variant="ghost">
                 Marcar en progreso
               </Button>
             </form>
           )}
-          <form
-            action={discardNutritionRequest}
-            onSubmit={(e) => {
-              if (!confirm(`¿Descartar la solicitud de ${request.clientNombre}? No se puede deshacer.`)) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <input type="hidden" name="request_id" value={request.id} />
-            <input type="hidden" name="client_id" value={request.clientId} />
-            <Button type="submit" variant="ghost" className="text-destructive">
-              Descartar
-            </Button>
-          </form>
+          {!directo && (
+            <form
+              action={discardNutritionRequest}
+              onSubmit={(e) => {
+                if (!confirm(`¿Descartar la solicitud de ${request.clientNombre}? No se puede deshacer.`)) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <input type="hidden" name="request_id" value={request.id ?? ""} />
+              <input type="hidden" name="client_id" value={request.clientId} />
+              <Button type="submit" variant="ghost" className="text-destructive">
+                Descartar
+              </Button>
+            </form>
+          )}
         </div>
 
         {expanded && (

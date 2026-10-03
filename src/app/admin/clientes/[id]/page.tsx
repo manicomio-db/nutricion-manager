@@ -252,7 +252,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                     <CardDescription>Historial de planes armados para este cliente.</CardDescription>
                   </div>
                   <Button nativeButton={false} render={<Link href={`/admin/clientes/${id}/planes/nuevo`} />}>
-                    + Nuevo plan manual
+                    + Nuevo plan (IA o manual)
                   </Button>
                 </div>
               </CardHeader>
