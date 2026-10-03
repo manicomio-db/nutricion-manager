@@ -228,21 +228,37 @@ export async function deleteClient(formData: FormData) {
 
 // --- Planes -----------------------------------------------------------------
 
-export async function savePlan(input: { clientId: string; title: string; comidas: Meal[] }) {
+export async function savePlan(input: {
+  clientId: string;
+  title: string;
+  comidas: Meal[];
+  suplementacion?: string | null;
+}) {
   const { supabase } = await requireAdmin();
   await supabase.from("nutrition_plans").insert({
     client_id: input.clientId,
     title: input.title,
     comidas: input.comidas,
+    suplementacion: input.suplementacion?.trim() || null,
   });
   revalidatePath(`/admin/clientes/${input.clientId}`);
 }
 
-export async function updatePlan(input: { id: string; clientId: string; title: string; comidas: Meal[] }) {
+export async function updatePlan(input: {
+  id: string;
+  clientId: string;
+  title: string;
+  comidas: Meal[];
+  suplementacion?: string | null;
+}) {
   const { supabase } = await requireAdmin();
   await supabase
     .from("nutrition_plans")
-    .update({ title: input.title, comidas: input.comidas })
+    .update({
+      title: input.title,
+      comidas: input.comidas,
+      suplementacion: input.suplementacion?.trim() || null,
+    })
     .eq("id", input.id);
   revalidatePath(`/admin/clientes/${input.clientId}`);
 }
@@ -356,6 +372,7 @@ export async function saveNutritionPlanFromRequest(input: {
   title: string;
   comidas: Meal[];
   source: "ia" | "manual";
+  suplementacion?: string | null;
 }) {
   const { profile, supabase } = await requireAdmin();
 
@@ -365,6 +382,7 @@ export async function saveNutritionPlanFromRequest(input: {
     request_id: input.requestId,
     title: input.title,
     comidas: input.comidas,
+    suplementacion: input.suplementacion?.trim() || null,
     source: input.source,
   });
 

@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Food, Meal, MealItem } from "@/lib/types";
+import { Textarea } from "@/components/ui/textarea";
+import type { Food, Meal, MealItem, MealMomento } from "@/lib/types";
 import { savePlan, updatePlan } from "../../../actions";
 
 function round(n: number) {
@@ -52,14 +53,17 @@ export function PlanEditor({
   foods,
   initialTitle,
   initialComidas,
+  initialSuplementacion,
 }: {
   clientId: string;
   planId?: string;
   foods: Food[];
   initialTitle: string;
   initialComidas: Meal[];
+  initialSuplementacion?: string | null;
 }) {
   const router = useRouter();
+  const [suplementacion, setSuplementacion] = useState(initialSuplementacion ?? "");
   const [title, setTitle] = useState(initialTitle);
   const [comidas, setComidas] = useState<Meal[]>(initialComidas);
   const [saving, setSaving] = useState(false);
@@ -148,9 +152,9 @@ export function PlanEditor({
     setSaving(true);
     try {
       if (planId) {
-        await updatePlan({ id: planId, clientId, title, comidas });
+        await updatePlan({ id: planId, clientId, title, comidas, suplementacion });
       } else {
-        await savePlan({ clientId, title, comidas });
+        await savePlan({ clientId, title, comidas, suplementacion });
       }
       toast.success("Plan guardado.");
       router.push(`/admin/clientes/${clientId}`);
@@ -195,6 +199,21 @@ export function PlanEditor({
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Input value={meal.nombre} onChange={(e) => renameMeal(mealIdx, e.target.value)} />
+                <select
+                  className="h-9 shrink-0 rounded-md border bg-background px-2 text-sm"
+                  value={meal.momento ?? ""}
+                  onChange={(e) =>
+                    setComidas((c) =>
+                      c.map((m, idx) =>
+                        idx === mealIdx ? { ...m, momento: (e.target.value || null) as MealMomento } : m
+                      )
+                    )
+                  }
+                >
+                  <option value="">Normal</option>
+                  <option value="pre">Pre-entreno</option>
+                  <option value="post">Post-entreno</option>
+                </select>
                 <Button type="button" size="sm" variant="ghost" onClick={() => removeMeal(mealIdx)}>
                   Quitar comida
                 </Button>
@@ -252,6 +271,15 @@ export function PlanEditor({
       <Button type="button" variant="outline" onClick={addMeal} className="w-fit">
         + Comida
       </Button>
+
+      <div className="flex flex-col gap-2">
+        <Label>Suplementación (explicación para el cliente)</Label>
+        <Textarea
+          value={suplementacion}
+          onChange={(e) => setSuplementacion(e.target.value)}
+          placeholder="Ej: Creatina 5 g al día. Magnesio 300 mg por la noche."
+        />
+      </div>
 
       <Button type="button" onClick={guardar} disabled={saving} className="w-fit">
         {saving ? "Guardando..." : "Guardar plan"}

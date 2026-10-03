@@ -73,9 +73,12 @@ export type MealItem = {
   grasas: number;
 };
 
+export type MealMomento = "pre" | "post" | null;
+
 export type Meal = {
   nombre: string;
   items: MealItem[];
+  momento?: MealMomento;
 };
 
 export type NutritionPlan = {
@@ -85,6 +88,7 @@ export type NutritionPlan = {
   request_id: string | null;
   title: string;
   comidas: Meal[];
+  suplementacion: string | null;
   source: "ia" | "manual";
   created_at: string;
 };

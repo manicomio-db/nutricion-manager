@@ -36,6 +36,7 @@ export default async function EditarPlanPage({
             foods={foods ?? []}
             initialTitle={plan.title}
             initialComidas={plan.comidas}
+            initialSuplementacion={plan.suplementacion}
           />
         </CardContent>
       </Card>

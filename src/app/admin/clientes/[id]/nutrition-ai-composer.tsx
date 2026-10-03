@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import type { Meal, MealItem } from "@/lib/types";
+import { Textarea } from "@/components/ui/textarea";
+import type { Meal, MealItem, MealMomento } from "@/lib/types";
 import {
   ACTIVIDAD_LABEL,
   AJUSTE_LABEL,
@@ -89,6 +90,10 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
   const [objetivo, setObjetivo] = useState(request.objetivo);
   const [restricciones, setRestricciones] = useState(request.restricciones ?? "");
   const [comidasDia, setComidasDia] = useState(String(request.comidasDia ?? 4));
+  const [suplementacion, setSuplementacion] = useState("");
+  const [preN, setPreN] = useState(""); // número de comida, "" = ninguna
+  const [postN, setPostN] = useState("");
+  const numComidas = Math.min(8, Math.max(1, Number(comidasDia) || 4));
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(`Plan nutricional para ${request.clientNombre}`);
@@ -149,6 +154,9 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
           objetivo,
           restricciones: restricciones.trim() || null,
           comidas_dia: Number(comidasDia) || 4,
+          suplementacion: suplementacion.trim() || null,
+          pre_entreno: Number(preN) || null,
+          post_entreno: Number(postN) || null,
           altura_cm: request.alturaCm,
           peso_kg: request.pesoKg,
           grasa_pct: request.grasaPct,
@@ -160,10 +168,13 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error generando plan");
-      const generadas: Meal[] = (data.comidas ?? []).map((m: { nombre: string; items: MealItem[] }) => ({
-        nombre: m.nombre,
-        items: m.items.map((it) => ({ ...it, food_id: null })),
-      }));
+      const generadas: Meal[] = (data.comidas ?? []).map(
+        (m: { nombre: string; items: MealItem[] }, idx: number) => ({
+          nombre: m.nombre,
+          items: m.items.map((it) => ({ ...it, food_id: null })),
+          momento: idx + 1 === Number(preN) ? "pre" : idx + 1 === Number(postN) ? "post" : null,
+        })
+      );
       setComidas(generadas);
       setSource("ia");
       setExpanded(true);
@@ -177,6 +188,10 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
 
   function updateMealNombre(i: number, nombre: string) {
     setComidas((c) => c.map((m, idx) => (idx === i ? { ...m, nombre } : m)));
+  }
+
+  function updateMealMomento(i: number, momento: MealMomento) {
+    setComidas((c) => c.map((m, idx) => (idx === i ? { ...m, momento } : m)));
   }
 
   function addMeal() {
@@ -310,6 +325,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
         title,
         comidas,
         source,
+        suplementacion,
       });
       toast.success("Plan asignado al cliente.");
       if (directo) router.push(`/admin/clientes/${request.clientId}`);
@@ -387,6 +403,45 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3">
+          <p className="text-sm font-medium">Entrenamiento y suplementación</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(
+              [
+                ["Comida pre-entreno", preN, setPreN],
+                ["Comida post-entreno", postN, setPostN],
+              ] as const
+            ).map(([label, value, setter]) => (
+              <label key={label} className="flex flex-col gap-1 text-xs text-muted-foreground">
+                {label}
+                <select
+                  className="h-9 rounded-md border bg-background px-2 text-sm text-foreground"
+                  value={value}
+                  onChange={(e) => setter(e.target.value)}
+                >
+                  <option value="">Ninguna</option>
+                  {Array.from({ length: numComidas }, (_, i) => (
+                    <option key={i + 1} value={String(i + 1)}>
+                      Comida {i + 1}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            Suplementación (explicación para el cliente)
+            <Textarea
+              value={suplementacion}
+              onChange={(e) => setSuplementacion(e.target.value)}
+              placeholder="Ej: Creatina 5 g al día con cualquier comida. Magnesio 300 mg por la noche. Proteína en polvo post-entreno."
+            />
+          </label>
+          <p className="text-xs text-muted-foreground">
+            La IA tomará en cuenta esto al armar las comidas, y el texto de suplementación se mostrará al cliente en su plan.
+          </p>
+        </div>
+
         <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3">
           <p className="text-sm font-medium">Metas diarias del plan</p>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -530,6 +585,15 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
                 <div key={mealIdx} className="flex flex-col gap-2 rounded-md border p-3">
                   <div className="flex items-center gap-2">
                     <Input value={meal.nombre} onChange={(e) => updateMealNombre(mealIdx, e.target.value)} />
+                    <select
+                      className="h-9 shrink-0 rounded-md border bg-background px-2 text-sm"
+                      value={meal.momento ?? ""}
+                      onChange={(e) => updateMealMomento(mealIdx, (e.target.value || null) as MealMomento)}
+                    >
+                      <option value="">Normal</option>
+                      <option value="pre">Pre-entreno</option>
+                      <option value="post">Post-entreno</option>
+                    </select>
                     <Button type="button" size="sm" variant="ghost" onClick={() => removeMeal(mealIdx)}>
                       Quitar comida
                     </Button>

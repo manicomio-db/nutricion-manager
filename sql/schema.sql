@@ -73,6 +73,7 @@ create table if not exists public.nutrition_plans (
 alter table public.nutrition_plans add column if not exists admin_id uuid references public.profiles (id);
 alter table public.nutrition_plans add column if not exists request_id uuid;
 alter table public.nutrition_plans add column if not exists source text not null default 'manual';
+alter table public.nutrition_plans add column if not exists suplementacion text;
 do $$
 begin
   alter table public.nutrition_plans add constraint nutrition_plans_source_check check (source in ('ia', 'manual'));

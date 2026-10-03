@@ -28,7 +28,13 @@ export async function POST(req: Request) {
     masa_muscular_kg,
     agua_corporal_l,
     metas,
+    suplementacion,
+    pre_entreno,
+    post_entreno,
   } = body as {
+    suplementacion?: string | null;
+    pre_entreno?: number | null; // número de comida (1-based)
+    post_entreno?: number | null;
     metas?: { kcal: number; proteina: number; carbos: number; grasas: number } | null;
     objetivo: string;
     restricciones: string | null;
@@ -62,6 +68,22 @@ export async function POST(req: Request) {
 
   const hasMetas = !!metas && metas.kcal > 0;
 
+  const preN = pre_entreno && pre_entreno >= 1 && pre_entreno <= comidas ? pre_entreno : null;
+  const postN = post_entreno && post_entreno >= 1 && post_entreno <= comidas ? post_entreno : null;
+  const extras = [
+    preN
+      ? `- La comida ${preN} es la PRE-ENTRENO: carbohidratos de buena calidad y fáciles de digerir, proteína moderada, grasa y fibra bajas.`
+      : null,
+    postN
+      ? `- La comida ${postN} es la POST-ENTRENO: proteína de alta calidad y carbohidratos para recuperar glucógeno, grasa baja.`
+      : null,
+    suplementacion?.trim()
+      ? `- Suplementación indicada por el nutricionista (tenla en cuenta; no la incluyas como alimentos salvo que sea un polvo de proteína u otro suplemento calórico mencionado): ${suplementacion.trim()}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
   const prompt = `Eres un nutricionista experto. Diseña un plan de alimentación de un día para un cliente con estos datos:
 - Objetivo: ${objetivo}
 - Restricciones o alergias: ${restricciones || "ninguna reportada"}
@@ -73,7 +95,7 @@ ${
     : "Si hay datos corporales, ténlos en cuenta internamente (gasto energético, proteína por kg de peso/masa muscular, etc.) para definir las calorías y macros del día. Si no hay datos corporales, usa buen juicio nutricional general según el objetivo."
 }
 
-No escribas cálculos, explicaciones ni ningún texto fuera del JSON. Tu respuesta completa debe ser ÚNICAMENTE el JSON (sin markdown, sin comentarios) con esta forma exacta:
+${extras ? `Indicaciones adicionales:\n${extras}\n\n` : ""}No escribas cálculos, explicaciones ni ningún texto fuera del JSON. Tu respuesta completa debe ser ÚNICAMENTE el JSON (sin markdown, sin comentarios) con esta forma exacta:
 {
   "comidas": [
     {

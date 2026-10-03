@@ -115,7 +115,11 @@ export default async function ClientePlanPage() {
             return (
               <Card key={i}>
                 <CardHeader>
-                  <CardTitle>{meal.nombre}</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    {meal.nombre}
+                    {meal.momento === "pre" && <Badge>Pre-entreno</Badge>}
+                    {meal.momento === "post" && <Badge>Post-entreno</Badge>}
+                  </CardTitle>
                   <CardDescription>
                     {round(t.kcal)} kcal · P {round(t.proteina)}g · C {round(t.carbos)}g · G{" "}
                     {round(t.grasas)}g
@@ -136,6 +140,17 @@ export default async function ClientePlanPage() {
               </Card>
             );
           })}
+
+          {plan.suplementacion && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Suplementación</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-line text-sm">{plan.suplementacion}</p>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 
