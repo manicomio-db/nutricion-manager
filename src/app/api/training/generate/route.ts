@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireProfile } from "@/lib/supabase/session";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const { profile } = await requireProfile();
   if (profile.role !== "admin") {
@@ -56,6 +58,7 @@ Incluye exactamente ${sesiones} días. Evita ejercicios que agraven las lesiones
     const message = await anthropic.messages.create({
       model: "claude-sonnet-5",
       max_tokens: 4000,
+      thinking: { type: "disabled" },
       messages: [{ role: "user", content: prompt }],
     });
 

@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { requireProfile } from "@/lib/supabase/session";
 import type { Meal } from "@/lib/types";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const { profile } = await requireProfile();
   if (profile.role !== "admin") {
@@ -120,6 +122,8 @@ Incluye exactamente ${comidas} comidas. Los valores kcal/proteina/carbos/grasas 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-5",
       max_tokens: 8000,
+      // Sin razonamiento extendido: con él tardaba ~55 s y Vercel cortaba la petición.
+      thinking: { type: "disabled" },
       messages: [{ role: "user", content: prompt }],
     });
 
