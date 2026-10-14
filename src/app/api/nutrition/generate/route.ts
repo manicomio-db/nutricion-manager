@@ -32,11 +32,13 @@ export async function POST(req: Request) {
     agua_corporal_l,
     metas,
     client_id,
+    preferencias,
     suplementacion,
     pre_entreno,
     post_entreno,
   } = body as {
     client_id?: string | null;
+    preferencias?: string | null;
     suplementacion?: string | null;
     pre_entreno?: number | null; // número de comida (1-based)
     post_entreno?: number | null;
@@ -91,6 +93,9 @@ export async function POST(req: Request) {
       : null,
     postN
       ? `- La comida ${postN} es la POST-ENTRENO: proteína de alta calidad y carbohidratos para recuperar glucógeno, grasa baja.`
+      : null,
+    preferencias?.trim()
+      ? `- Alimentos de preferencia del cliente (construye el plan sobre todo con ellos, cuidando que cumplan las metas y restricciones; puedes sumar otros para completar macros): ${preferencias.trim()}`
       : null,
     suplementacion?.trim()
       ? `- Suplementación indicada por el nutricionista (tenla en cuenta; no la incluyas como alimentos salvo que sea un polvo de proteína u otro suplemento calórico mencionado): ${suplementacion.trim()}`

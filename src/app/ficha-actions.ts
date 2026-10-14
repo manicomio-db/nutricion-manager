@@ -60,6 +60,11 @@ export async function saveHealthProfile(
     return { error: "Los días de entrenamiento deben estar entre 1 y 7.", success: false };
   }
 
+  const mealsPerDay = num(formData, "meals_per_day");
+  if (mealsPerDay !== null && (Number.isNaN(mealsPerDay) || mealsPerDay < 1 || mealsPerDay > 8)) {
+    return { error: "Las comidas al día deben estar entre 1 y 8.", success: false };
+  }
+
   const parq: Record<string, boolean> = {};
   for (const q of PARQ_QUESTIONS) {
     const answer = String(formData.get(`parq_${q.key}`) ?? "");
@@ -92,6 +97,8 @@ export async function saveHealthProfile(
       food_allergies: text(formData, "food_allergies"),
       supplements: text(formData, "supplements"),
       training_days: trainingDays,
+      food_preferences: text(formData, "food_preferences"),
+      meals_per_day: mealsPerDay,
       emergency_name: text(formData, "emergency_name"),
       emergency_phone: text(formData, "emergency_phone"),
       notes: text(formData, "notes"),

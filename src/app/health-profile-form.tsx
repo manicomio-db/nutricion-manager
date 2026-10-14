@@ -167,6 +167,27 @@ export function HealthProfileForm({
       <section className="flex flex-col gap-4">
         <h3 className="font-semibold">Alimentación y suplementos</h3>
         <div className="flex flex-col gap-2">
+          <Label htmlFor="meals_per_day">¿Cuántas comidas al día prefieres hacer?</Label>
+          <Input
+            id="meals_per_day"
+            name="meals_per_day"
+            type="number"
+            min={1}
+            max={8}
+            placeholder="Ej: 4"
+            defaultValue={initial?.meals_per_day ?? ""}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="food_preferences">Alimentos de tu preferencia</Label>
+          <Textarea
+            id="food_preferences"
+            name="food_preferences"
+            placeholder="Ej: pollo, huevo, arroz, avena, aguacate, frutas como plátano y fresa, tortillas de maíz..."
+            defaultValue={initial?.food_preferences ?? ""}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
           <Label htmlFor="food_allergies">Alergias, intolerancias o alimentos que no comes</Label>
           <Textarea
             id="food_allergies"

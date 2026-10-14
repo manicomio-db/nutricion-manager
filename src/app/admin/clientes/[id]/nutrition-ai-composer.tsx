@@ -38,6 +38,7 @@ type RequestInfo = {
   tasaMetabolicaKcal?: number | null;
   edad?: number | null;
   sexo?: string | null;
+  preferencias?: string | null;
 };
 
 type MetasForm = { kcal: string; proteina: string; carbos: string; grasas: string };
@@ -93,6 +94,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
   const [restricciones, setRestricciones] = useState(request.restricciones ?? "");
   const [comidasDia, setComidasDia] = useState(String(request.comidasDia ?? 4));
   const [suplementacion, setSuplementacion] = useState("");
+  const [preferencias, setPreferencias] = useState(request.preferencias ?? "");
   const [preN, setPreN] = useState(""); // número de comida, "" = ninguna
   const [postN, setPostN] = useState("");
   const numComidas = Math.min(8, Math.max(1, Number(comidasDia) || 4));
@@ -164,6 +166,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
           restricciones: restricciones.trim() || null,
           comidas_dia: Number(comidasDia) || 4,
           suplementacion: suplementacion.trim() || null,
+          preferencias: preferencias.trim() || null,
           pre_entreno: Number(preN) || null,
           post_entreno: Number(postN) || null,
           altura_cm: request.alturaCm,
@@ -413,7 +416,15 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3">
-          <p className="text-sm font-medium">Entrenamiento y suplementación</p>
+          <p className="text-sm font-medium">Preferencias, entrenamiento y suplementación</p>
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            Alimentos de preferencia del cliente
+            <Textarea
+              value={preferencias}
+              onChange={(e) => setPreferencias(e.target.value)}
+              placeholder="Ej: pollo, huevo, arroz, avena, aguacate, plátano, tortillas de maíz..."
+            />
+          </label>
           <div className="grid gap-2 sm:grid-cols-2">
             {(
               [

@@ -163,6 +163,8 @@ export function healthSummaryForPrompt(h: HealthProfile): string {
     `- Condiciones de salud: ${conditions.length ? conditions.join("; ") : "ninguna reportada"}`,
     `- Lesiones o cirugías: ${h.injuries?.trim() || "ninguna reportada"}`,
     `- Medicamentos: ${h.medications?.trim() || "ninguno reportado"}`,
+    `- Comidas al día que prefiere: ${h.meals_per_day ?? "no indicado"}`,
+    `- Alimentos de su preferencia (priorízalos cuando encajen con las metas): ${h.food_preferences?.trim() || "no indicados"}`,
     `- Alergias o intolerancias alimentarias: ${h.food_allergies?.trim() || "ninguna reportada"}`,
     `- Suplementos que toma actualmente: ${h.supplements?.trim() || "ninguno reportado"}`,
     `- Cuestionario PAR-Q, respuestas "Sí": ${parqYes.length ? parqYes.join(" | ") : "ninguna"}`,

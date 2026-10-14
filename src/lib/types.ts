@@ -188,6 +188,8 @@ export type HealthProfile = {
   food_allergies: string | null;
   supplements: string | null;
   training_days: number | null;
+  food_preferences: string | null;
+  meals_per_day: number | null;
   emergency_name: string | null;
   emergency_phone: string | null;
   notes: string | null;

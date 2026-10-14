@@ -400,6 +400,8 @@ create table if not exists public.health_profiles (
   food_allergies text,
   supplements text,
   training_days integer check (training_days is null or (training_days between 1 and 7)),
+  food_preferences text,
+  meals_per_day integer check (meals_per_day is null or (meals_per_day between 1 and 8)),
   emergency_name text,
   emergency_phone text,
   notes text,
@@ -408,6 +410,17 @@ create table if not exists public.health_profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Columnas agregadas después de la primera versión de la tabla (seguro re-ejecutar).
+alter table public.health_profiles add column if not exists food_preferences text;
+alter table public.health_profiles add column if not exists meals_per_day integer;
+do $
+begin
+  alter table public.health_profiles add constraint health_profiles_meals_per_day_check
+    check (meals_per_day is null or (meals_per_day between 1 and 8));
+exception
+  when duplicate_object then null;
+end $;
 
 alter table public.health_profiles enable row level security;
 
