@@ -414,13 +414,13 @@ create table if not exists public.health_profiles (
 -- Columnas agregadas después de la primera versión de la tabla (seguro re-ejecutar).
 alter table public.health_profiles add column if not exists food_preferences text;
 alter table public.health_profiles add column if not exists meals_per_day integer;
-do $
+do $$
 begin
   alter table public.health_profiles add constraint health_profiles_meals_per_day_check
     check (meals_per_day is null or (meals_per_day between 1 and 8));
 exception
   when duplicate_object then null;
-end $;
+end $$;
 
 alter table public.health_profiles enable row level security;
 
