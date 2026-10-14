@@ -21,6 +21,15 @@ export async function requestTrainingPlan(
     return { error: "Falta el objetivo.", success: false };
   }
 
+  const { data: ficha } = await supabase
+    .from("health_profiles")
+    .select("client_id")
+    .eq("client_id", profile.id)
+    .maybeSingle();
+  if (!ficha) {
+    return { error: "Primero llena tu ficha de salud.", success: false };
+  }
+
   const { data: existing } = await supabase
     .from("training_plan_requests")
     .select("id")
@@ -64,6 +73,15 @@ export async function requestNutritionPlan(
 
   if (!objetivo) {
     return { error: "Falta el objetivo.", success: false };
+  }
+
+  const { data: ficha } = await supabase
+    .from("health_profiles")
+    .select("client_id")
+    .eq("client_id", profile.id)
+    .maybeSingle();
+  if (!ficha) {
+    return { error: "Primero llena tu ficha de salud.", success: false };
   }
 
   const { data: existing } = await supabase

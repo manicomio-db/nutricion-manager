@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import type { NutritionPlan, NutritionPlanRequest } from "@/lib/types";
 import { NutritionRequestForm } from "./nutrition-request-form";
+import { FichaRequired } from "@/components/ficha-required";
 
 const STATUS_LABEL: Record<string, string> = {
   pendiente: "Pendiente",
@@ -17,7 +18,7 @@ function round(n: number) {
 export default async function ClientePlanPage() {
   const { profile, supabase } = await requireClient();
 
-  const [{ data: plan }, { data: requests }] = await Promise.all([
+  const [{ data: plan }, { data: requests }, { data: ficha }] = await Promise.all([
     supabase
       .from("nutrition_plans")
       .select("*")
@@ -31,6 +32,7 @@ export default async function ClientePlanPage() {
       .eq("client_id", profile.id)
       .order("created_at", { ascending: false })
       .returns<NutritionPlanRequest[]>(),
+    supabase.from("health_profiles").select("client_id").eq("client_id", profile.id).maybeSingle(),
   ]);
 
   const activeRequest = requests?.find(
@@ -160,7 +162,9 @@ export default async function ClientePlanPage() {
           <CardDescription>Tu nutricionista lo revisará y te lo asignará.</CardDescription>
         </CardHeader>
         <CardContent>
-          {activeRequest ? (
+          {!ficha ? (
+            <FichaRequired />
+          ) : activeRequest ? (
             <div className="flex flex-col gap-2 rounded-md border p-3">
               <div className="flex items-center justify-between">
                 <p className="font-medium">{activeRequest.objetivo}</p>

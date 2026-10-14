@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import type { Food, ProgressLog, Profile } from "@/lib/types";
+import type { Food, HealthProfile, ProgressLog, Profile } from "@/lib/types";
+import { ageFromBirthDate } from "@/lib/health";
 import { PlanEditor } from "../plan-editor";
 import { NutritionAiComposer } from "../../nutrition-ai-composer";
 
@@ -9,7 +10,7 @@ export default async function NuevoPlanPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const { supabase } = await requireAdmin();
 
-  const [{ data: foods }, { data: client }, { data: latestLog }] = await Promise.all([
+  const [{ data: foods }, { data: client }, { data: latestLog }, { data: health }] = await Promise.all([
     supabase.from("foods").select("*").order("nombre", { ascending: true }).returns<Food[]>(),
     supabase.from("profiles").select("*").eq("id", id).single<Profile>(),
     supabase
@@ -19,6 +20,7 @@ export default async function NuevoPlanPage({ params }: { params: Promise<{ id: 
       .order("fecha", { ascending: false })
       .limit(1)
       .maybeSingle<ProgressLog>(),
+    supabase.from("health_profiles").select("*").eq("client_id", id).maybeSingle<HealthProfile>(),
   ]);
 
   if (!client) notFound();
@@ -38,12 +40,14 @@ export default async function NuevoPlanPage({ params }: { params: Promise<{ id: 
           clientId: id,
           clientNombre: client.full_name ?? "Cliente",
           objetivo: client.objetivo ?? "",
-          restricciones: client.restricciones,
+          restricciones: [client.restricciones, health?.food_allergies].filter(Boolean).join("; ") || null,
           comidasDia: 4,
           notas: null,
           status: "directo",
-          alturaCm: client.altura_cm,
-          pesoKg: latestLog?.peso_kg ?? null,
+          alturaCm: client.altura_cm ?? health?.height_cm ?? null,
+          edad: health ? ageFromBirthDate(health.birth_date) : null,
+          sexo: health?.sex ?? null,
+          pesoKg: latestLog?.peso_kg ?? health?.weight_kg ?? null,
           grasaPct: latestLog?.grasa_pct ?? null,
           grasaVisceral: latestLog?.grasa_visceral ?? null,
           masaMuscularKg: latestLog?.masa_muscular_kg ?? null,

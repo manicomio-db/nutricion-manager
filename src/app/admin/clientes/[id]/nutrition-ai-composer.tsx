@@ -36,6 +36,8 @@ type RequestInfo = {
   masaMuscularKg?: number | null;
   aguaCorporalL?: number | null;
   tasaMetabolicaKcal?: number | null;
+  edad?: number | null;
+  sexo?: string | null;
 };
 
 type MetasForm = { kcal: string; proteina: string; carbos: string; grasas: string };
@@ -108,6 +110,9 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
         pesoKg: request.pesoKg,
         grasaPct: request.grasaPct,
         tasaMetabolicaKcal: request.tasaMetabolicaKcal,
+        alturaCm: request.alturaCm,
+        edad: request.edad,
+        sexo: request.sexo,
         actividad: "moderado",
         ajuste: inferAjuste(request.objetivo),
       })
@@ -123,6 +128,9 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
           pesoKg: request.pesoKg,
           grasaPct: request.grasaPct,
           tasaMetabolicaKcal: request.tasaMetabolicaKcal,
+          alturaCm: request.alturaCm,
+          edad: request.edad,
+          sexo: request.sexo,
           actividad: act,
           ajuste: aj,
         })
@@ -151,6 +159,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          client_id: request.clientId,
           objetivo,
           restricciones: restricciones.trim() || null,
           comidas_dia: Number(comidasDia) || 4,

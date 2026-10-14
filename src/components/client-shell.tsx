@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, ClipboardList, Dumbbell, TrendingUp, BookOpen, LogOut } from "lucide-react";
+import { Home, ClipboardList, Dumbbell, TrendingUp, BookOpen, LogOut, HeartPulse } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/(auth)/actions";
 
@@ -31,15 +31,27 @@ export function ClientShell({
           <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-8" priority />
           <span className="truncate text-sm font-medium">{name ?? "Usuario"}</span>
         </div>
-        <form action={logout}>
-          <button
-            type="submit"
-            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+        <div className="flex items-center gap-1">
+          <Link
+            href="/cliente/ficha"
+            className={cn(
+              "flex items-center gap-1 rounded-md px-2 py-1 text-xs hover:bg-muted hover:text-foreground",
+              pathname === "/cliente/ficha" ? "text-primary" : "text-muted-foreground"
+            )}
           >
-            <LogOut className="size-3.5" />
-            Salir
-          </button>
-        </form>
+            <HeartPulse className="size-3.5" />
+            Mi ficha
+          </Link>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <LogOut className="size-3.5" />
+              Salir
+            </button>
+          </form>
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 pt-4 pb-24">{children}</main>

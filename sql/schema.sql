@@ -379,3 +379,51 @@ create policy "progress_photos_storage_delete" on storage.objects
     bucket_id = 'progress-photos'
     and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin())
   );
+
+-- ----------------------------------------------------------------------------
+-- Ficha de salud (una por cliente): edad, sexo, peso, estatura, condiciones,
+-- lesiones, medicamentos, PAR-Q y datos de alimentación. La llena el cliente
+-- (o el admin a su nombre) y alimenta a la IA para dietas/entrenos más precisos.
+-- ----------------------------------------------------------------------------
+create table if not exists public.health_profiles (
+  client_id uuid primary key references public.profiles (id) on delete cascade,
+  birth_date date not null,
+  sex text check (sex in ('femenino', 'masculino', 'otro', 'prefiero_no_decir')),
+  weight_kg numeric(5, 1),
+  height_cm numeric(4, 1),
+  activity_level text check (activity_level in ('sedentario', 'ligero', 'moderado', 'activo')),
+  conditions text[] not null default '{}',
+  conditions_other text,
+  injuries text,
+  medications text,
+  parq jsonb not null default '{}'::jsonb,
+  food_allergies text,
+  supplements text,
+  training_days integer check (training_days is null or (training_days between 1 and 7)),
+  emergency_name text,
+  emergency_phone text,
+  notes text,
+  consent_at timestamptz,
+  filled_by uuid references public.profiles (id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.health_profiles enable row level security;
+
+drop policy if exists "health_profiles_select_own_or_admin" on public.health_profiles;
+create policy "health_profiles_select_own_or_admin" on public.health_profiles
+  for select using (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "health_profiles_insert_own_or_admin" on public.health_profiles;
+create policy "health_profiles_insert_own_or_admin" on public.health_profiles
+  for insert with check (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "health_profiles_update_own_or_admin" on public.health_profiles;
+create policy "health_profiles_update_own_or_admin" on public.health_profiles
+  for update using (client_id = auth.uid() or public.is_admin())
+  with check (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "health_profiles_delete_admin" on public.health_profiles;
+create policy "health_profiles_delete_admin" on public.health_profiles
+  for delete using (public.is_admin());

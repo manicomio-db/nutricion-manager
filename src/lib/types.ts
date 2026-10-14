@@ -172,3 +172,27 @@ export type TrainingPlan = {
   source: TrainingPlanSource;
   created_at: string;
 };
+
+export type HealthProfile = {
+  client_id: string;
+  birth_date: string;
+  sex: "femenino" | "masculino" | "otro" | "prefiero_no_decir" | null;
+  weight_kg: number | null;
+  height_cm: number | null;
+  activity_level: "sedentario" | "ligero" | "moderado" | "activo" | null;
+  conditions: string[];
+  conditions_other: string | null;
+  injuries: string | null;
+  medications: string | null;
+  parq: Record<string, boolean>;
+  food_allergies: string | null;
+  supplements: string | null;
+  training_days: number | null;
+  emergency_name: string | null;
+  emergency_phone: string | null;
+  notes: string | null;
+  consent_at: string | null;
+  filled_by: string | null;
+  created_at: string;
+  updated_at: string;
+};

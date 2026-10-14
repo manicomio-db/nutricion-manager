@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import type { TrainingPlan, TrainingPlanRequest } from "@/lib/types";
 import { RequestTrainingForm } from "./request-form";
+import { FichaRequired } from "@/components/ficha-required";
 
 const STATUS_LABEL: Record<string, string> = {
   pendiente: "Pendiente",
@@ -13,7 +14,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function ClienteEntrenamientoPage() {
   const { profile, supabase } = await requireClient();
 
-  const [{ data: plan }, { data: requests }] = await Promise.all([
+  const [{ data: plan }, { data: requests }, { data: ficha }] = await Promise.all([
     supabase
       .from("training_plans")
       .select("*")
@@ -27,6 +28,7 @@ export default async function ClienteEntrenamientoPage() {
       .eq("client_id", profile.id)
       .order("created_at", { ascending: false })
       .returns<TrainingPlanRequest[]>(),
+    supabase.from("health_profiles").select("client_id").eq("client_id", profile.id).maybeSingle(),
   ]);
 
   const activeRequest = requests?.find(
@@ -95,7 +97,9 @@ export default async function ClienteEntrenamientoPage() {
           <CardDescription>Tu entrenador lo revisará y te lo asignará.</CardDescription>
         </CardHeader>
         <CardContent>
-          {activeRequest ? (
+          {!ficha ? (
+            <FichaRequired />
+          ) : activeRequest ? (
             <div className="flex flex-col gap-2 rounded-md border p-3">
               <div className="flex items-center justify-between">
                 <p className="font-medium">{activeRequest.objetivo}</p>

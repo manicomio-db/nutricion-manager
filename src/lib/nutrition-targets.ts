@@ -45,6 +45,9 @@ export type TargetInput = {
   pesoKg: number | null | undefined;
   grasaPct: number | null | undefined;
   tasaMetabolicaKcal: number | null | undefined;
+  alturaCm?: number | null;
+  edad?: number | null;
+  sexo?: string | null; // "masculino" | "femenino" | otro
   actividad: Actividad;
   ajuste: Ajuste;
 };
@@ -62,7 +65,7 @@ export function inferAjuste(objetivo: string): Ajuste {
 
 // Calcula metas diarias. Devuelve null si no hay datos suficientes (peso).
 export function computeTargets(input: TargetInput): Metas | null {
-  const { pesoKg, grasaPct, tasaMetabolicaKcal, actividad, ajuste } = input;
+  const { pesoKg, grasaPct, tasaMetabolicaKcal, alturaCm, edad, sexo, actividad, ajuste } = input;
   if (!pesoKg || pesoKg <= 0) return null;
 
   const masaMagra = grasaPct && grasaPct > 0 && grasaPct < 70 ? pesoKg * (1 - grasaPct / 100) : null;
@@ -71,6 +74,10 @@ export function computeTargets(input: TargetInput): Metas | null {
   let bmr: number | null = null;
   if (tasaMetabolicaKcal && tasaMetabolicaKcal > 0) bmr = tasaMetabolicaKcal;
   else if (masaMagra) bmr = 370 + 21.6 * masaMagra;
+  // Sin InBody ni % de grasa: Mifflin-St Jeor con edad, estatura y sexo de la ficha de salud.
+  else if (alturaCm && edad && (sexo === "masculino" || sexo === "femenino")) {
+    bmr = 10 * pesoKg + 6.25 * alturaCm - 5 * edad + (sexo === "masculino" ? 5 : -161);
+  }
   if (!bmr) return null;
 
   const kcal = Math.round(bmr * ACTIVIDAD_FACTOR[actividad] * AJUSTE_FACTOR[ajuste]);

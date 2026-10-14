@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireProfile } from "@/lib/supabase/session";
+import type { HealthProfile } from "@/lib/types";
+import { healthSummaryForPrompt } from "@/lib/health";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const { profile } = await requireProfile();
+  const { profile, supabase } = await requireProfile();
   if (profile.role !== "admin") {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
@@ -18,7 +20,8 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { objetivo, nivel, lesiones, sesiones_semana } = body as {
+  const { objetivo, nivel, lesiones, sesiones_semana, client_id } = body as {
+    client_id?: string | null;
     objetivo: string;
     nivel: string | null;
     lesiones: string | null;
@@ -33,13 +36,27 @@ export async function POST(req: Request) {
 
   const sesiones = sesiones_semana && sesiones_semana > 0 ? sesiones_semana : 3;
 
+  let ficha = "";
+  if (client_id) {
+    const { data: health } = await supabase
+      .from("health_profiles")
+      .select("*")
+      .eq("client_id", client_id)
+      .maybeSingle<HealthProfile>();
+    if (health) ficha = healthSummaryForPrompt(health);
+  }
+
   const prompt = `Eres un entrenador personal experto. Diseña una rutina de entrenamiento para un cliente con estos datos:
 - Objetivo: ${objetivo}
 - Nivel: ${nivel || "intermedio"}
 - Lesiones o condiciones previas: ${lesiones || "ninguna reportada"}
 - Sesiones por semana: ${sesiones}
 
-Responde ÚNICAMENTE con un JSON válido (sin markdown, sin texto extra) con esta forma exacta:
+${
+  ficha
+    ? `Ficha de salud del cliente (úsala para adaptar ejercicios, intensidad, volumen y descansos; evita lo contraindicado por sus condiciones, lesiones, medicamentos y respuestas del PAR-Q, y prioriza opciones seguras):\n${ficha}\n\n`
+    : ""
+}Responde ÚNICAMENTE con un JSON válido (sin markdown, sin texto extra) con esta forma exacta:
 {
   "resumen": "string breve describiendo el enfoque de la rutina",
   "dias": [

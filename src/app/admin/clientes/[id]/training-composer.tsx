@@ -43,6 +43,7 @@ export function TrainingComposer({ request }: { request: RequestInfo }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          client_id: request.clientId,
           objetivo: request.objetivo,
           nivel: request.nivel,
           lesiones: request.lesiones,

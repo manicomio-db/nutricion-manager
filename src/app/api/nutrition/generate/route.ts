@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireProfile } from "@/lib/supabase/session";
-import type { Meal } from "@/lib/types";
+import type { HealthProfile, Meal } from "@/lib/types";
+import { healthSummaryForPrompt } from "@/lib/health";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const { profile } = await requireProfile();
+  const { profile, supabase } = await requireProfile();
   if (profile.role !== "admin") {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
@@ -30,10 +31,12 @@ export async function POST(req: Request) {
     masa_muscular_kg,
     agua_corporal_l,
     metas,
+    client_id,
     suplementacion,
     pre_entreno,
     post_entreno,
   } = body as {
+    client_id?: string | null;
     suplementacion?: string | null;
     pre_entreno?: number | null; // número de comida (1-based)
     post_entreno?: number | null;
@@ -70,6 +73,16 @@ export async function POST(req: Request) {
 
   const hasMetas = !!metas && metas.kcal > 0;
 
+  let ficha = "";
+  if (client_id) {
+    const { data: health } = await supabase
+      .from("health_profiles")
+      .select("*")
+      .eq("client_id", client_id)
+      .maybeSingle<HealthProfile>();
+    if (health) ficha = healthSummaryForPrompt(health);
+  }
+
   const preN = pre_entreno && pre_entreno >= 1 && pre_entreno <= comidas ? pre_entreno : null;
   const postN = post_entreno && post_entreno >= 1 && post_entreno <= comidas ? post_entreno : null;
   const extras = [
@@ -97,7 +110,11 @@ ${
     : "Si hay datos corporales, ténlos en cuenta internamente (gasto energético, proteína por kg de peso/masa muscular, etc.) para definir las calorías y macros del día. Si no hay datos corporales, usa buen juicio nutricional general según el objetivo."
 }
 
-${extras ? `Indicaciones adicionales:\n${extras}\n\n` : ""}No escribas cálculos, explicaciones ni ningún texto fuera del JSON. Tu respuesta completa debe ser ÚNICAMENTE el JSON (sin markdown, sin comentarios) con esta forma exacta:
+${
+  ficha
+    ? `Ficha de salud del cliente (respétala: adapta alimentos, sodio, azúcares, fibra, proteína y horarios a sus condiciones, medicamentos, alergias e intolerancias; NUNCA incluyas alimentos a los que sea alérgico o intolerante):\n${ficha}\n\n`
+    : ""
+}${extras ? `Indicaciones adicionales:\n${extras}\n\n` : ""}No escribas cálculos, explicaciones ni ningún texto fuera del JSON. Tu respuesta completa debe ser ÚNICAMENTE el JSON (sin markdown, sin comentarios) con esta forma exacta:
 {
   "comidas": [
     {

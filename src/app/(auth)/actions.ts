@@ -85,7 +85,7 @@ export async function signup(_prevState: AuthState, formData: FormData): Promise
     redirect("/login");
   }
 
-  redirect("/cliente");
+  redirect("/cliente/ficha");
 }
 
 export async function logout() {

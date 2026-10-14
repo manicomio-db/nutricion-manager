@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type {
   NutritionPlan,
   NutritionPlanRequest,
+  HealthProfile,
   Payment,
   ProgressLog,
   ProgressPhoto,
@@ -21,6 +22,8 @@ import { PaymentForm } from "./payment-form";
 import { ProgressChart } from "@/components/progress-chart";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { DeleteClientButton } from "./delete-client-button";
+import { HealthTab } from "./health-tab";
+import { ageFromBirthDate } from "@/lib/health";
 import { TrainingComposer } from "./training-composer";
 import { NutritionAiComposer } from "./nutrition-ai-composer";
 import { todayLocal } from "@/lib/date";
@@ -60,6 +63,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     { data: nutritionRequests },
     { data: payments },
     { data: photos },
+    { data: health },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).single<Profile>(),
     supabase
@@ -104,6 +108,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       .eq("client_id", id)
       .order("fecha", { ascending: false })
       .returns<ProgressPhoto[]>(),
+    supabase.from("health_profiles").select("*").eq("client_id", id).maybeSingle<HealthProfile>(),
   ]);
 
   if (!client) notFound();
@@ -150,6 +155,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       <Tabs defaultValue="datos">
         <TabsList>
           <TabsTrigger value="datos">Datos</TabsTrigger>
+          <TabsTrigger value="ficha">Ficha de salud</TabsTrigger>
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
           <TabsTrigger value="planes">Planes</TabsTrigger>
           <TabsTrigger value="entrenamiento">Entrenamiento</TabsTrigger>
@@ -166,6 +172,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               <ClientProfileForm client={client} />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="ficha">
+          <HealthTab clientId={id} clientNombre={client.full_name ?? "El cliente"} health={health ?? null} />
         </TabsContent>
 
         <TabsContent value="pagos">
@@ -231,8 +241,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                       comidasDia: r.comidas_dia,
                       notas: r.notas,
                       status: r.status,
-                      alturaCm: client.altura_cm,
-                      pesoKg: latestLog?.peso_kg ?? null,
+                      alturaCm: client.altura_cm ?? health?.height_cm ?? null,
+                      edad: health ? ageFromBirthDate(health.birth_date) : null,
+                      sexo: health?.sex ?? null,
+                      pesoKg: latestLog?.peso_kg ?? health?.weight_kg ?? null,
                       grasaPct: latestLog?.grasa_pct ?? null,
                       grasaVisceral: latestLog?.grasa_visceral ?? null,
                       masaMuscularKg: latestLog?.masa_muscular_kg ?? null,

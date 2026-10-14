@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MacroRing } from "@/components/macro-ring";
+import { FichaRequired } from "@/components/ficha-required";
 import { Dumbbell, BookOpen, Scale } from "lucide-react";
 import type { NutritionPlan, Payment, ProgressLog, TrainingPlan } from "@/lib/types";
 import { todayLocal } from "@/lib/date";
@@ -18,7 +19,7 @@ const MEMBERSHIP_LABEL: Record<string, string> = {
 export default async function ClienteInicioPage() {
   const { profile, supabase } = await requireClient();
 
-  const [{ data: plan }, { data: trainingPlan }, { data: lastLog }, { data: latestPayment }] = await Promise.all([
+  const [{ data: plan }, { data: trainingPlan }, { data: lastLog }, { data: latestPayment }, { data: ficha }] = await Promise.all([
     supabase
       .from("nutrition_plans")
       .select("*")
@@ -47,6 +48,7 @@ export default async function ClienteInicioPage() {
       .order("fecha_vencimiento", { ascending: false })
       .limit(1)
       .maybeSingle<Payment>(),
+    supabase.from("health_profiles").select("client_id").eq("client_id", profile.id).maybeSingle(),
   ]);
 
   const membershipStatusValue = membershipStatus(latestPayment?.fecha_vencimiento, todayLocal());
@@ -82,6 +84,8 @@ export default async function ClienteInicioPage() {
         </h1>
         <p className="text-muted-foreground">Este es tu resumen de hoy.</p>
       </div>
+
+      {!ficha && <FichaRequired />}
 
       {latestPayment && (
         <Card>
