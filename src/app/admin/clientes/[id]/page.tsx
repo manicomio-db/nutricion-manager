@@ -24,6 +24,7 @@ import { ProgressChart } from "@/components/progress-chart";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { DeleteClientButton } from "./delete-client-button";
 import { HealthTab } from "./health-tab";
+import { ResetPasswordForm } from "./reset-password-form";
 import { ageFromBirthDate } from "@/lib/health";
 import { analyzeProgress } from "@/lib/progress";
 import { nutritionOneLine } from "@/lib/nutrition-summary";
@@ -191,6 +192,19 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             </CardHeader>
             <CardContent>
               <ClientProfileForm client={client} />
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Contraseña del socio</CardTitle>
+              <CardDescription>
+                Si olvidó su contraseña, define una nueva aquí y compártesela. Podrá cambiarla cuando quiera
+                contigo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResetPasswordForm clientId={id} username={client.username} />
             </CardContent>
           </Card>
         </TabsContent>

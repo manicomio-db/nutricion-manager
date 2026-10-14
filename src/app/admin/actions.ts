@@ -7,6 +7,49 @@ import { todayLocal } from "@/lib/date";
 import { normalizeUsername, usernameToEmail } from "@/lib/username";
 import type { Meal, TrainingPlanContent } from "@/lib/types";
 
+// --- Contraseña de clientes -----------------------------------------------------
+
+export type ResetPasswordState = { error: string | null; success: boolean };
+
+/** El admin define una contraseña nueva para un cliente que olvidó la suya. */
+export async function resetClientPassword(
+  _prev: ResetPasswordState,
+  formData: FormData
+): Promise<ResetPasswordState> {
+  const { supabase } = await requireAdmin();
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { error: "Falta configurar SUPABASE_SERVICE_ROLE_KEY en el servidor.", success: false };
+  }
+
+  const clientId = String(formData.get("client_id") ?? "");
+  const password = String(formData.get("password") ?? "");
+
+  if (!clientId) return { error: "Falta el cliente.", success: false };
+  if (password.length < 6) {
+    return { error: "La contraseña debe tener al menos 6 caracteres.", success: false };
+  }
+
+  // Solo se permite cambiar la contraseña de cuentas de clientes, nunca la de un admin.
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", clientId)
+    .maybeSingle<{ id: string; role: string }>();
+  if (!target || target.role !== "cliente") {
+    return { error: "No se encontró ese cliente.", success: false };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(clientId, { password });
+  if (error) {
+    console.error("resetClientPassword error:", error);
+    return { error: "No se pudo cambiar la contraseña. Intenta de nuevo.", success: false };
+  }
+
+  return { error: null, success: true };
+}
+
 // --- Fotos de progreso ---------------------------------------------------------
 
 export async function deleteProgressPhoto(formData: FormData) {
