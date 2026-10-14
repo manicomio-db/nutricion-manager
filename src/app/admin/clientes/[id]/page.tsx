@@ -443,12 +443,12 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                     key={p.id}
                     className="flex items-center justify-between rounded-md border p-3 text-sm"
                   >
-                    <span>
+                    <Link href={`/admin/clientes/${id}/entrenamiento/${p.id}`} className="flex-1 hover:underline">
                       <span className="font-medium">{p.title}</span>{" "}
                       <span className="text-muted-foreground">
-                        · {p.contenido.dias?.length ?? 0} días · {p.source === "ia" ? "IA" : "Manual"}
+                        · {p.contenido.dias?.length ?? 0} días · {p.source === "ia" ? "IA" : "Manual"} · Editar
                       </span>
-                    </span>
+                    </Link>
                     <form action={deleteTrainingPlan}>
                       <input type="hidden" name="id" value={p.id} />
                       <input type="hidden" name="client_id" value={id} />

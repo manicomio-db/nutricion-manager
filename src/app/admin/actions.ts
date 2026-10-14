@@ -383,6 +383,41 @@ export async function saveTrainingPlan(input: {
   revalidatePath(`/admin/clientes/${input.clientId}`);
 }
 
+export async function updateTrainingPlan(input: {
+  id: string;
+  clientId: string;
+  title: string;
+  contenido: TrainingPlanContent;
+}) {
+  const { supabase } = await requireAdmin();
+
+  // Se limpian los espacios y los links vacíos antes de guardar.
+  const contenido: TrainingPlanContent = {
+    resumen: input.contenido.resumen?.trim() ?? "",
+    dias: (input.contenido.dias ?? []).map((d) => ({
+      dia: d.dia.trim(),
+      ejercicios: d.ejercicios
+        .filter((e) => e.nombre.trim())
+        .map((e) => ({
+          nombre: e.nombre.trim(),
+          series: e.series.trim(),
+          reps: e.reps.trim(),
+          notas: e.notas?.trim() || undefined,
+          video_url: e.video_url?.trim() || null,
+        })),
+    })),
+  };
+
+  const { error } = await supabase
+    .from("training_plans")
+    .update({ title: input.title.trim(), contenido })
+    .eq("id", input.id);
+  if (error) throw new Error("No se pudo guardar el plan.");
+
+  revalidatePath(`/admin/clientes/${input.clientId}`);
+  revalidatePath("/cliente/entrenamiento");
+}
+
 export async function markTrainingInProgress(formData: FormData) {
   const { supabase } = await requireAdmin();
   const requestId = String(formData.get("request_id") ?? "");
