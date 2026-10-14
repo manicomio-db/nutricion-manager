@@ -440,3 +440,47 @@ create policy "health_profiles_update_own_or_admin" on public.health_profiles
 drop policy if exists "health_profiles_delete_admin" on public.health_profiles;
 create policy "health_profiles_delete_admin" on public.health_profiles
   for delete using (public.is_admin());
+
+-- ----------------------------------------------------------------------------
+-- Progreso del entrenamiento: registro de peso y repeticiones por ejercicio.
+-- Cada registro queda ligado al plan de entrenamiento vigente del cliente, y la
+-- solicitud de un nuevo plan guarda el plan anterior y cómo le fue al cliente.
+-- ----------------------------------------------------------------------------
+create table if not exists public.workout_logs (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references public.profiles (id) on delete cascade,
+  plan_id uuid references public.training_plans (id) on delete set null,
+  exercise text not null,
+  log_date date not null,
+  sets integer check (sets is null or sets > 0),
+  reps integer not null check (reps > 0),
+  weight_kg numeric(6, 2) check (weight_kg is null or weight_kg >= 0),
+  logged_by uuid references public.profiles (id),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists workout_logs_client_idx
+  on public.workout_logs (client_id, plan_id, log_date);
+
+alter table public.training_plan_requests
+  add column if not exists prev_plan_id uuid references public.training_plans (id) on delete set null;
+alter table public.training_plan_requests add column if not exists feedback jsonb;
+
+alter table public.workout_logs enable row level security;
+
+drop policy if exists "workout_logs_select_own_or_admin" on public.workout_logs;
+create policy "workout_logs_select_own_or_admin" on public.workout_logs
+  for select using (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "workout_logs_insert_own_or_admin" on public.workout_logs;
+create policy "workout_logs_insert_own_or_admin" on public.workout_logs
+  for insert with check (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "workout_logs_update_own_or_admin" on public.workout_logs;
+create policy "workout_logs_update_own_or_admin" on public.workout_logs
+  for update using (client_id = auth.uid() or public.is_admin())
+  with check (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "workout_logs_delete_own_or_admin" on public.workout_logs;
+create policy "workout_logs_delete_own_or_admin" on public.workout_logs
+  for delete using (client_id = auth.uid() or public.is_admin());

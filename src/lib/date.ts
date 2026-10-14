@@ -8,3 +8,10 @@ const GYM_TIMEZONE = "America/Mexico_City";
 export function todayLocal(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: GYM_TIMEZONE }).format(new Date());
 }
+
+/** Suma (o resta) días a una fecha YYYY-MM-DD. */
+export function addDays(date: string, days: number): string {
+  const [y, m, day] = date.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1, day + days));
+  return d.toISOString().slice(0, 10);
+}

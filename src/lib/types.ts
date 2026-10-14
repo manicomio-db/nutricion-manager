@@ -139,6 +139,8 @@ export type TrainingPlanRequest = {
   lesiones: string | null;
   sesiones_semana: number | null;
   status: TrainingRequestStatus;
+  prev_plan_id: string | null;
+  feedback: TrainingFeedback | null;
   created_at: string;
 };
 
@@ -197,4 +199,25 @@ export type HealthProfile = {
   filled_by: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type TrainingFeedback = {
+  dificultad: "muy_facil" | "adecuada" | "muy_dificil";
+  objetivo_logrado: "si" | "parcial" | "no";
+  dias_por_semana: number | null;
+  molestias: string | null;
+  comentarios: string | null;
+};
+
+export type WorkoutLog = {
+  id: string;
+  client_id: string;
+  plan_id: string | null;
+  exercise: string;
+  log_date: string;
+  sets: number | null;
+  reps: number;
+  weight_kg: number | null;
+  logged_by: string | null;
+  created_at: string;
 };

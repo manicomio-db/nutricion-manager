@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireClient } from "@/lib/supabase/session";
 import { todayLocal } from "@/lib/date";
+import type { TrainingFeedback } from "@/lib/types";
 
 export type RequestTrainingState = { error: string | null; success: boolean };
 
@@ -45,6 +46,39 @@ export async function requestTrainingPlan(
     };
   }
 
+  // Si ya tuvo un plan de entrenamiento, el formulario pide cómo le fue para diseñar el siguiente.
+  const { data: prevPlan } = await supabase
+    .from("training_plans")
+    .select("id")
+    .eq("client_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let feedback: TrainingFeedback | null = null;
+  if (prevPlan) {
+    const dificultad = String(formData.get("dificultad") ?? "");
+    const logrado = String(formData.get("objetivo_logrado") ?? "");
+    if (
+      !["muy_facil", "adecuada", "muy_dificil"].includes(dificultad) ||
+      !["si", "parcial", "no"].includes(logrado)
+    ) {
+      return {
+        error: "Cuéntanos cómo te fue con tu plan anterior (dificultad y si lograste tu objetivo).",
+        success: false,
+      };
+    }
+    const diasRaw = String(formData.get("dias_por_semana") ?? "").trim();
+    const dias = Number(diasRaw);
+    feedback = {
+      dificultad: dificultad as TrainingFeedback["dificultad"],
+      objetivo_logrado: logrado as TrainingFeedback["objetivo_logrado"],
+      dias_por_semana: diasRaw !== "" && Number.isInteger(dias) && dias >= 0 && dias <= 7 ? dias : null,
+      molestias: String(formData.get("molestias") ?? "").trim().slice(0, 1000) || null,
+      comentarios: String(formData.get("comentarios") ?? "").trim().slice(0, 1000) || null,
+    };
+  }
+
   await supabase.from("training_plan_requests").insert({
     client_id: profile.id,
     objetivo,
@@ -52,6 +86,8 @@ export async function requestTrainingPlan(
     lesiones,
     sesiones_semana: sesiones,
     status: "pendiente",
+    prev_plan_id: prevPlan?.id ?? null,
+    feedback,
   });
 
   revalidatePath("/cliente/entrenamiento");

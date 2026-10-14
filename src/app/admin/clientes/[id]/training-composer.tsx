@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import type { TrainingPlanContent } from "@/lib/types";
+import type { TrainingFeedback, TrainingPlanContent } from "@/lib/types";
+import { DIFFICULTY_LABEL, GOAL_LABEL, type ExerciseProgress } from "@/lib/progress";
+import { ProgressTable } from "@/components/progress-table";
 import { saveTrainingPlan, markTrainingInProgress, discardTrainingRequest } from "../../actions";
 
 type RequestInfo = {
@@ -22,13 +24,27 @@ type RequestInfo = {
   status: string;
 };
 
+export type PreviousInfo = {
+  title: string;
+  progress: ExerciseProgress[];
+  feedback: TrainingFeedback | null;
+};
+
 const STATUS_LABEL: Record<string, string> = {
   pendiente: "Pendiente",
   en_progreso: "En progreso",
   completado: "Completado",
 };
 
-export function TrainingComposer({ request }: { request: RequestInfo }) {
+export function TrainingComposer({
+  request,
+  previous,
+  dietaResumen,
+}: {
+  request: RequestInfo;
+  previous?: PreviousInfo | null;
+  dietaResumen?: string | null;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -44,6 +60,7 @@ export function TrainingComposer({ request }: { request: RequestInfo }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           client_id: request.clientId,
+          request_id: request.id,
           objetivo: request.objetivo,
           nivel: request.nivel,
           lesiones: request.lesiones,
@@ -157,6 +174,33 @@ export function TrainingComposer({ request }: { request: RequestInfo }) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        {dietaResumen && (
+          <div className="rounded-md border bg-muted/30 p-3 text-sm">
+            <p className="mb-1 font-semibold">Plan de alimentación vigente</p>
+            <p className="text-muted-foreground">{dietaResumen}</p>
+            <p className="mt-1 text-xs text-muted-foreground">La IA adaptará la rutina a esta dieta.</p>
+          </div>
+        )}
+
+        {previous && (
+          <div className="rounded-md border bg-muted/30 p-3 text-sm">
+            <p className="mb-2 font-semibold">Progreso con el plan anterior: {previous.title}</p>
+            <ProgressTable progress={previous.progress} />
+            {previous.feedback && (
+              <ul className="mt-3 list-disc pl-5 text-muted-foreground">
+                <li>Dificultad: {DIFFICULTY_LABEL[previous.feedback.dificultad]}</li>
+                <li>¿Logró su objetivo?: {GOAL_LABEL[previous.feedback.objetivo_logrado]}</li>
+                <li>Días por semana que entrenó: {previous.feedback.dias_por_semana ?? "no indicado"}</li>
+                {previous.feedback.molestias && <li>Molestias: {previous.feedback.molestias}</li>}
+                {previous.feedback.comentarios && <li>Comentarios: {previous.feedback.comentarios}</li>}
+              </ul>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">
+              La IA usa este seguimiento para hacer el nuevo plan progresivo.
+            </p>
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={generar} disabled={generating}>
             {generating ? "Generando..." : "Generar con IA"}

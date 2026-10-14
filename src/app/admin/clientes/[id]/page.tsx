@@ -15,6 +15,7 @@ import type {
   Profile,
   TrainingPlan,
   TrainingPlanRequest,
+  WorkoutLog,
 } from "@/lib/types";
 import { ClientProfileForm } from "./profile-form";
 import { ProgressLogForm } from "./progress-form";
@@ -24,6 +25,11 @@ import { PhotoGallery } from "@/components/photo-gallery";
 import { DeleteClientButton } from "./delete-client-button";
 import { HealthTab } from "./health-tab";
 import { ageFromBirthDate } from "@/lib/health";
+import { analyzeProgress } from "@/lib/progress";
+import { nutritionOneLine } from "@/lib/nutrition-summary";
+import { ProgressTable } from "@/components/progress-table";
+import { WorkoutLogForm } from "@/components/workout-log-form";
+import { deleteWorkoutLog } from "../../../progreso-actions";
 import { TrainingComposer } from "./training-composer";
 import { NutritionAiComposer } from "./nutrition-ai-composer";
 import { todayLocal } from "@/lib/date";
@@ -64,6 +70,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     { data: payments },
     { data: photos },
     { data: health },
+    { data: workoutLogs },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).single<Profile>(),
     supabase
@@ -109,6 +116,14 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       .order("fecha", { ascending: false })
       .returns<ProgressPhoto[]>(),
     supabase.from("health_profiles").select("*").eq("client_id", id).maybeSingle<HealthProfile>(),
+    supabase
+      .from("workout_logs")
+      .select("*")
+      .eq("client_id", id)
+      .order("log_date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(300)
+      .returns<WorkoutLog[]>(),
   ]);
 
   if (!client) notFound();
@@ -116,6 +131,12 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const activeTrainingRequests = (trainingRequests ?? []).filter((r) => r.status !== "completado");
   const activeNutritionRequests = (nutritionRequests ?? []).filter((r) => r.status !== "completado");
   const latestLog = logs && logs.length > 0 ? logs[logs.length - 1] : null;
+  const dietaResumen = plans && plans.length > 0 ? nutritionOneLine(plans[0]) : null;
+  const latestTrainingPlan = trainingPlans?.[0] ?? null;
+  const latestPlanLogs = (workoutLogs ?? []).filter((l) => latestTrainingPlan && l.plan_id === latestTrainingPlan.id);
+  const planExercises = Array.from(
+    new Set((latestTrainingPlan?.contenido.dias ?? []).flatMap((d) => d.ejercicios.map((e) => e.nombre)).filter(Boolean))
+  );
   const latestPayment = payments?.[0] ?? null;
   const status = membershipStatus(latestPayment?.fecha_vencimiento, todayLocal());
 
@@ -333,21 +354,69 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               <p className="text-muted-foreground">No hay solicitudes de entrenamiento pendientes.</p>
             )}
 
-            {activeTrainingRequests.map((r) => (
-              <TrainingComposer
-                key={r.id}
-                request={{
-                  id: r.id,
-                  clientId: r.client_id,
-                  clientNombre: client.full_name ?? "Cliente",
-                  objetivo: r.objetivo,
-                  nivel: r.nivel,
-                  lesiones: r.lesiones,
-                  sesionesSemana: r.sesiones_semana,
-                  status: r.status,
-                }}
-              />
-            ))}
+            {activeTrainingRequests.map((r) => {
+              // Plan anterior de la solicitud (o el último plan asignado si no quedó ligado).
+              const prevPlan =
+                (trainingPlans ?? []).find((p) => p.id === r.prev_plan_id) ?? latestTrainingPlan;
+              return (
+                <TrainingComposer
+                  key={r.id}
+                  request={{
+                    id: r.id,
+                    clientId: r.client_id,
+                    clientNombre: client.full_name ?? "Cliente",
+                    objetivo: r.objetivo,
+                    nivel: r.nivel,
+                    lesiones: r.lesiones,
+                    sesionesSemana: r.sesiones_semana,
+                    status: r.status,
+                  }}
+                  dietaResumen={dietaResumen}
+                  previous={
+                    prevPlan
+                      ? {
+                          title: prevPlan.title,
+                          progress: analyzeProgress(
+                            (workoutLogs ?? []).filter((l) => l.plan_id === prevPlan.id)
+                          ),
+                          feedback: r.feedback,
+                        }
+                      : null
+                  }
+                />
+              );
+            })}
+
+            {latestTrainingPlan && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Seguimiento del plan actual</CardTitle>
+                  <CardDescription>
+                    Registros de peso y repeticiones de «{latestTrainingPlan.title}». Puedes anotar uno a nombre del
+                    cliente.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4">
+                  <ProgressTable progress={analyzeProgress(latestPlanLogs)} />
+                  {latestPlanLogs.slice(0, 8).map((l) => (
+                    <div key={l.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
+                      <span>
+                        {l.log_date} — <strong>{l.exercise}</strong>: {l.sets ? `${l.sets}×` : ""}
+                        {l.reps} reps{l.weight_kg ? ` · ${l.weight_kg} kg` : ""}
+                      </span>
+                      <form action={deleteWorkoutLog}>
+                        <input type="hidden" name="id" value={l.id} />
+                        <input type="hidden" name="client_id" value={id} />
+                        <Button type="submit" size="sm" variant="ghost" className="text-destructive">
+                          Borrar
+                        </Button>
+                      </form>
+                    </div>
+                  ))}
+                  <WorkoutLogForm exercises={planExercises} maxDate={todayLocal()} clientId={id} />
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>
