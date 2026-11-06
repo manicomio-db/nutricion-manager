@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { logout } from "@/app/(auth)/actions";
 
 type NavItem = { href: string; label: string };
@@ -60,6 +61,10 @@ export function AppShell({
         </nav>
         <div className="mt-4 border-t border-sidebar-border pt-4">
           <p className="truncate px-2 text-sm font-medium">{name ?? "Usuario"}</p>
+          <ThemeToggle
+            showLabel
+            className="mt-2 w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
+          />
           <form action={logout}>
             <button
               type="submit"

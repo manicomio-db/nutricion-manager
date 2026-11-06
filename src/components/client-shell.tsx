@@ -15,6 +15,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { logout } from "@/app/(auth)/actions";
 
 const NAV = [
@@ -44,6 +45,7 @@ export function ClientShell({
           <span className="truncate text-sm font-medium">{name ?? "Usuario"}</span>
         </div>
         <div className="flex items-center gap-1">
+          <ThemeToggle className="text-muted-foreground hover:bg-muted hover:text-foreground" />
           <Link
             href="/cliente/ficha"
             className={cn(
