@@ -3,12 +3,22 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, ClipboardList, Dumbbell, TrendingUp, BookOpen, LogOut, HeartPulse } from "lucide-react";
+import {
+  Home,
+  ClipboardList,
+  Dumbbell,
+  TrendingUp,
+  BookOpen,
+  LogOut,
+  HeartPulse,
+  CalendarCheck,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/(auth)/actions";
 
 const NAV = [
   { href: "/cliente", label: "Inicio", icon: Home },
+  { href: "/cliente/hoy", label: "Hoy", icon: CalendarCheck },
   { href: "/cliente/plan", label: "Plan", icon: ClipboardList },
   { href: "/cliente/entrenamiento", label: "Entreno", icon: Dumbbell },
   { href: "/cliente/progreso", label: "Progreso", icon: TrendingUp },
@@ -66,7 +76,7 @@ export function ClientShell({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide transition-colors",
+                  "flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[9px] font-medium uppercase tracking-wide transition-colors",
                   active ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >

@@ -87,6 +87,20 @@ export default async function ClienteInicioPage() {
 
       {!ficha && <FichaRequired />}
 
+      <Link href="/cliente/hoy">
+        <Card className="transition-colors hover:bg-muted/50">
+          <CardContent className="flex items-center justify-between gap-3 pt-6">
+            <div>
+              <p className="font-semibold">Mi día</p>
+              <p className="text-sm text-muted-foreground">
+                Marca tus comidas, registra lo que comiste de más y lleva tu agua.
+              </p>
+            </div>
+            <span className="text-2xl">💧</span>
+          </CardContent>
+        </Card>
+      </Link>
+
       {latestPayment && (
         <Card>
           <CardContent className="flex items-center justify-between pt-6 text-sm">

@@ -221,3 +221,30 @@ export type WorkoutLog = {
   logged_by: string | null;
   created_at: string;
 };
+
+export type MealLogKind = "plan" | "otra" | "extra";
+
+export type MealLog = {
+  id: string;
+  client_id: string;
+  log_date: string;
+  plan_id: string | null;
+  meal_index: number | null;
+  meal_name: string;
+  kind: MealLogKind;
+  descripcion: string | null;
+  kcal: number;
+  proteina: number;
+  carbos: number;
+  grasas: number;
+  items: MealItem[] | null;
+  created_at: string;
+};
+
+export type WaterLog = {
+  id: string;
+  client_id: string;
+  log_date: string;
+  ml: number;
+  updated_at: string;
+};

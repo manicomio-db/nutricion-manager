@@ -484,3 +484,73 @@ create policy "workout_logs_update_own_or_admin" on public.workout_logs
 drop policy if exists "workout_logs_delete_own_or_admin" on public.workout_logs;
 create policy "workout_logs_delete_own_or_admin" on public.workout_logs
   for delete using (client_id = auth.uid() or public.is_admin());
+
+-- ----------------------------------------------------------------------------
+-- Diario del cliente: cumplimiento de comidas, comidas distintas/extra con su
+-- desglose de macros, y consumo de agua por vaso.
+-- ----------------------------------------------------------------------------
+create table if not exists public.meal_logs (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references public.profiles (id) on delete cascade,
+  log_date date not null,
+  plan_id uuid references public.nutrition_plans (id) on delete set null,
+  meal_index integer,
+  meal_name text not null,
+  -- plan = cumplió la comida del plan; otra = comió algo distinto en su lugar;
+  -- extra = comida adicional que no estaba en el plan.
+  kind text not null check (kind in ('plan', 'otra', 'extra')),
+  descripcion text,
+  kcal numeric(7, 1) not null default 0,
+  proteina numeric(6, 1) not null default 0,
+  carbos numeric(6, 1) not null default 0,
+  grasas numeric(6, 1) not null default 0,
+  items jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists meal_logs_client_date_idx
+  on public.meal_logs (client_id, log_date);
+
+create table if not exists public.water_logs (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references public.profiles (id) on delete cascade,
+  log_date date not null,
+  ml integer not null default 0 check (ml >= 0),
+  updated_at timestamptz not null default now(),
+  unique (client_id, log_date)
+);
+
+alter table public.meal_logs enable row level security;
+alter table public.water_logs enable row level security;
+
+drop policy if exists "meal_logs_select_own_or_admin" on public.meal_logs;
+create policy "meal_logs_select_own_or_admin" on public.meal_logs
+  for select using (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "meal_logs_insert_own" on public.meal_logs;
+create policy "meal_logs_insert_own" on public.meal_logs
+  for insert with check (client_id = auth.uid());
+
+drop policy if exists "meal_logs_update_own" on public.meal_logs;
+create policy "meal_logs_update_own" on public.meal_logs
+  for update using (client_id = auth.uid()) with check (client_id = auth.uid());
+
+drop policy if exists "meal_logs_delete_own_or_admin" on public.meal_logs;
+create policy "meal_logs_delete_own_or_admin" on public.meal_logs
+  for delete using (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "water_logs_select_own_or_admin" on public.water_logs;
+create policy "water_logs_select_own_or_admin" on public.water_logs
+  for select using (client_id = auth.uid() or public.is_admin());
+
+drop policy if exists "water_logs_insert_own" on public.water_logs;
+create policy "water_logs_insert_own" on public.water_logs
+  for insert with check (client_id = auth.uid());
+
+drop policy if exists "water_logs_update_own" on public.water_logs;
+create policy "water_logs_update_own" on public.water_logs
+  for update using (client_id = auth.uid()) with check (client_id = auth.uid());
+
+drop policy if exists "water_logs_delete_own_or_admin" on public.water_logs;
+create policy "water_logs_delete_own_or_admin" on public.water_logs
+  for delete using (client_id = auth.uid() or public.is_admin());

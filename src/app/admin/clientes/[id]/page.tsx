@@ -16,6 +16,8 @@ import type {
   TrainingPlan,
   TrainingPlanRequest,
   WorkoutLog,
+  MealLog,
+  WaterLog,
 } from "@/lib/types";
 import { ClientProfileForm } from "./profile-form";
 import { ProgressLogForm } from "./progress-form";
@@ -33,7 +35,9 @@ import { WorkoutLogForm } from "@/components/workout-log-form";
 import { deleteWorkoutLog } from "../../../progreso-actions";
 import { TrainingComposer } from "./training-composer";
 import { NutritionAiComposer } from "./nutrition-ai-composer";
-import { todayLocal } from "@/lib/date";
+import { addDays, todayLocal } from "@/lib/date";
+import { computeWaterGoal } from "@/lib/water";
+import { logTotals, planTotals } from "@/lib/daily";
 import { membershipStatus } from "@/lib/payments";
 import {
   deletePlan,
@@ -72,6 +76,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     { data: photos },
     { data: health },
     { data: workoutLogs },
+    { data: mealLogs },
+    { data: waterLogs },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).single<Profile>(),
     supabase
@@ -125,6 +131,19 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       .order("created_at", { ascending: false })
       .limit(300)
       .returns<WorkoutLog[]>(),
+    supabase
+      .from("meal_logs")
+      .select("*")
+      .eq("client_id", id)
+      .gte("log_date", addDays(todayLocal(), -13))
+      .order("created_at", { ascending: true })
+      .returns<MealLog[]>(),
+    supabase
+      .from("water_logs")
+      .select("*")
+      .eq("client_id", id)
+      .gte("log_date", addDays(todayLocal(), -13))
+      .returns<WaterLog[]>(),
   ]);
 
   if (!client) notFound();
@@ -133,6 +152,30 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const activeNutritionRequests = (nutritionRequests ?? []).filter((r) => r.status !== "completado");
   const latestLog = logs && logs.length > 0 ? logs[logs.length - 1] : null;
   const dietaResumen = plans && plans.length > 0 ? nutritionOneLine(plans[0]) : null;
+
+  // Seguimiento diario del cliente (últimos 14 días): comidas, calorías y agua.
+  const currentPlan = plans?.[0] ?? null;
+  const planTarget = planTotals(currentPlan);
+  const waterGoal = computeWaterGoal({
+    pesoKg: latestLog?.peso_kg ?? health?.weight_kg,
+    grasaPct: latestLog?.grasa_pct,
+    actividad: health?.activity_level,
+    objetivo: client.objetivo,
+    conditions: health?.conditions,
+  });
+  const dailyRows = Array.from({ length: 14 }, (_, i) => addDays(todayLocal(), -i)).map((date) => {
+    const logs = (mealLogs ?? []).filter((l) => l.log_date === date);
+    return {
+      date,
+      planDone: logs.filter((l) => l.kind === "plan").length,
+      otras: logs.filter((l) => l.kind === "otra").length,
+      extras: logs.filter((l) => l.kind === "extra").length,
+      kcal: Math.round(logTotals(logs).kcal),
+      ml: (waterLogs ?? []).find((w) => w.log_date === date)?.ml ?? 0,
+      hasData: logs.length > 0 || ((waterLogs ?? []).find((w) => w.log_date === date)?.ml ?? 0) > 0,
+    };
+  });
+  const activeDays = dailyRows.filter((r) => r.hasData);
   const latestTrainingPlan = trainingPlans?.[0] ?? null;
   const latestPlanLogs = (workoutLogs ?? []).filter((l) => latestTrainingPlan && l.plan_id === latestTrainingPlan.id);
   const planExercises = Array.from(
@@ -490,6 +533,49 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="progreso">
           <div className="flex flex-col gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Seguimiento diario</CardTitle>
+                <CardDescription>
+                  Lo que el cliente registra en su día: comidas cumplidas, calorías consumidas y agua (últimos 14
+                  días).
+                  {currentPlan
+                    ? ` Meta del plan: ${Math.round(planTarget.kcal)} kcal`
+                    : ""}
+                  {waterGoal ? ` · agua: ${(waterGoal.ml / 1000).toFixed(2).replace(/\.?0+$/, "")} L` : ""}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                {activeDays.length === 0 && (
+                  <p className="text-muted-foreground">El cliente aún no ha registrado comidas ni agua.</p>
+                )}
+                {activeDays.map((row) => (
+                  <div
+                    key={row.date}
+                    className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-md border p-2.5 text-sm"
+                  >
+                    <span className="font-medium">{row.date}</span>
+                    <span className="text-muted-foreground">
+                      {currentPlan ? `${row.planDone}/${currentPlan.comidas.length} comidas` : ""}
+                      {row.otras > 0 ? ` · ${row.otras} distinta${row.otras > 1 ? "s" : ""}` : ""}
+                      {row.extras > 0 ? ` · ${row.extras} extra${row.extras > 1 ? "s" : ""}` : ""}
+                      {` · ${row.kcal} kcal`}
+                      {currentPlan && planTarget.kcal > 0
+                        ? ` (${Math.round((row.kcal / planTarget.kcal) * 100)}% de la meta)`
+                        : ""}
+                    </span>
+                    <span
+                      className={
+                        waterGoal && row.ml >= waterGoal.ml ? "font-medium text-primary" : "text-muted-foreground"
+                      }
+                    >
+                      💧 {(row.ml / 1000).toFixed(1)} L
+                      {waterGoal ? ` (${Math.min(100, Math.round((row.ml / waterGoal.ml) * 100))}%)` : ""}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader>
                 <CardTitle>Fotos de progreso</CardTitle>
