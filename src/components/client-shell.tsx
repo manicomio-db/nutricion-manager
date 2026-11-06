@@ -12,6 +12,7 @@ import {
   LogOut,
   HeartPulse,
   CalendarCheck,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/(auth)/actions";
@@ -52,6 +53,16 @@ export function ClientShell({
           >
             <HeartPulse className="size-3.5" />
             Mi ficha
+          </Link>
+          <Link
+            href="/cliente/cuenta"
+            className={cn(
+              "flex items-center gap-1 rounded-md px-2 py-1 text-xs hover:bg-muted hover:text-foreground",
+              pathname === "/cliente/cuenta" ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            <KeyRound className="size-3.5" />
+            Cuenta
           </Link>
           <form action={logout}>
             <button

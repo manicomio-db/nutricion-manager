@@ -197,3 +197,48 @@ export async function deleteOwnProgressPhoto(formData: FormData) {
 
   revalidatePath("/cliente/progreso");
 }
+
+export type ChangePasswordState = { error: string | null; success: boolean };
+
+/** El cliente cambia su propia contraseña (se pide la actual como confirmación). */
+export async function changeOwnPassword(
+  _prev: ChangePasswordState,
+  formData: FormData
+): Promise<ChangePasswordState> {
+  const { supabase } = await requireClient();
+
+  const current = String(formData.get("current_password") ?? "");
+  const next = String(formData.get("new_password") ?? "");
+  const confirm = String(formData.get("confirm_password") ?? "");
+
+  if (!current) return { error: "Escribe tu contraseña actual.", success: false };
+  if (next.length < 6) {
+    return { error: "La nueva contraseña debe tener al menos 6 caracteres.", success: false };
+  }
+  if (next !== confirm) {
+    return { error: "La confirmación no coincide con la nueva contraseña.", success: false };
+  }
+  if (next === current) {
+    return { error: "La nueva contraseña debe ser distinta a la actual.", success: false };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user?.email) return { error: "No se pudo verificar tu cuenta. Vuelve a iniciar sesión.", success: false };
+
+  // Confirma que quien cambia la contraseña conoce la actual.
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: current,
+  });
+  if (verifyError) return { error: "Tu contraseña actual no es correcta.", success: false };
+
+  const { error } = await supabase.auth.updateUser({ password: next });
+  if (error) {
+    console.error("changeOwnPassword error:", error);
+    return { error: "No se pudo cambiar la contraseña. Intenta de nuevo.", success: false };
+  }
+
+  return { error: null, success: true };
+}
