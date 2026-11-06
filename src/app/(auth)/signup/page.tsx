@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { signup, type AuthState } from "../actions";
+import { AuthShell } from "@/components/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,7 @@ export default function SignupPage() {
   const [state, formAction, pending] = useActionState(signup, initialState);
 
   return (
-    <div className="brand-bg flex min-h-svh flex-col items-center justify-center gap-6 p-6">
+    <AuthShell>
       <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-32 rounded-3xl shadow-2xl shadow-primary/40 ring-1 ring-white/20" priority />
       <Card className="w-full max-w-sm neon-border">
         <CardHeader>
@@ -59,6 +60,6 @@ export default function SignupPage() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }
