@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireClient } from "@/lib/supabase/session";
 import { todayLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -15,12 +16,7 @@ export default async function ClienteFichaPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi ficha de salud</h1>
-        <p className="text-muted-foreground">
-          Con esta información tu nutriólogo adapta tu dieta y tu entrenamiento a tu edad, condición y lesiones.
-        </p>
-      </div>
+      <PageHeader title={<>Mi ficha de salud</>} subtitle={<>Con esta información tu nutriólogo adapta tu dieta y tu entrenamiento a tu edad, condición y lesiones.</>} />
 
       <Card>
         <CardHeader>

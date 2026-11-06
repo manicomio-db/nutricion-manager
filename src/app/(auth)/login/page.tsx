@@ -15,8 +15,8 @@ export default function LoginPage() {
   const [state, formAction, pending] = useActionState(login, initialState);
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
-      <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-32 rounded-3xl shadow-xl shadow-primary/25" priority />
+    <div className="brand-bg flex min-h-svh flex-col items-center justify-center gap-6 p-6">
+      <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-32 rounded-3xl shadow-2xl shadow-primary/40 ring-1 ring-white/20" priority />
       <Card className="w-full max-w-sm neon-border">
         <CardHeader>
           <CardTitle>Nutrición</CardTitle>

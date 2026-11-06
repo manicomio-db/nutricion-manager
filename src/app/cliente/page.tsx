@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { requireClient } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -78,12 +79,7 @@ export default async function ClienteInicioPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-2xl font-bold">
-          Hola, {profile.full_name?.split(" ")[0] ?? "👋"}
-        </h1>
-        <p className="text-muted-foreground">Este es tu resumen de hoy.</p>
-      </div>
+      <PageHeader title={<>Hola, {profile.full_name?.split(" ")[0] ?? "👋"}</>} subtitle={<>Este es tu resumen de hoy.</>} />
 
       {!ficha && <FichaRequired />}
 

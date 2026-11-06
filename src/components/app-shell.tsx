@@ -25,17 +25,17 @@ export function AppShell({
 
   return (
     <div className="flex min-h-svh">
-      <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4 text-sidebar-foreground">
+      <aside className="brand-lines flex w-64 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar p-4 text-sidebar-foreground">
         <div className="mb-6 px-2">
           <Image
             src="/logo.png"
             alt="Manicomio Gym"
             width={1320}
             height={1283}
-            className="w-20 rounded-2xl shadow-md shadow-primary/20"
+            className="w-20 rounded-2xl shadow-lg shadow-primary/30 ring-1 ring-white/15"
             priority
           />
-          <p className="mt-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60">
             Nutrición · Admin
           </p>
         </div>
@@ -49,8 +49,8 @@ export function AppShell({
                 className={cn(
                   "rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
                   active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
                 )}
               >
                 {item.label}
@@ -63,7 +63,7 @@ export function AppShell({
           <form action={logout}>
             <button
               type="submit"
-              className="mt-2 w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+              className="mt-2 w-full rounded-md px-3 py-2 text-left text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
             >
               Cerrar sesión
             </button>

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireClient } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressChart } from "@/components/progress-chart";
@@ -43,10 +44,7 @@ export default async function ClienteProgresoPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi progreso</h1>
-        <p className="text-muted-foreground">Mediciones y fotos de tu progreso físico.</p>
-      </div>
+      <PageHeader title={<>Mi progreso</>} subtitle={<>Mediciones y fotos de tu progreso físico.</>} />
 
       <Card>
         <CardHeader>

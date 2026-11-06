@@ -37,6 +37,7 @@ export function ClientShell({
   return (
     <div className="flex min-h-svh flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur">
+        <span aria-hidden className="brand-line absolute inset-x-0 bottom-0" />
         <div className="flex items-center gap-2">
           <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-8 rounded-lg shadow-sm" priority />
           <span className="truncate text-sm font-medium">{name ?? "Usuario"}</span>
@@ -67,6 +68,7 @@ export function ClientShell({
       <main className="flex-1 overflow-y-auto px-4 pt-4 pb-24">{children}</main>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-card/95 backdrop-blur">
+        <span aria-hidden className="brand-line absolute inset-x-0 top-0" />
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2">
           {NAV.map((item) => {
             const active = pathname === item.href;

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireAdmin } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,13 +27,8 @@ export default async function TipsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Aprender</h1>
-        <p className="text-muted-foreground">
-          Organiza el contenido en secciones (ej. &quot;ManicomioTips&quot;, &quot;Abdomen Plano&quot;)
-          y agrega tips dentro de cada una. Los clientes las ven en su sección &quot;Aprender&quot;.
-        </p>
-      </div>
+      <PageHeader title={<>Aprender</>} subtitle={<>Organiza el contenido en secciones (ej. &quot;ManicomioTips&quot;, &quot;Abdomen Plano&quot;)
+          y agrega tips dentro de cada una. Los clientes las ven en su sección &quot;Aprender&quot;.</>} />
 
       <Card>
         <CardHeader>

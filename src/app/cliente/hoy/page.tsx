@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireClient } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MacroRing } from "@/components/macro-ring";
@@ -108,16 +109,11 @@ export default async function HoyPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi día</h1>
-        <p className="text-muted-foreground first-letter:uppercase">
-          {new Date(`${today}T12:00:00`).toLocaleDateString("es-MX", {
+      <PageHeader title={<>Mi día</>} subtitle={<>{new Date(`${today}T12:00:00`).toLocaleDateString("es-MX", {
             weekday: "long",
             day: "numeric",
             month: "long",
-          })}
-        </p>
-      </div>
+          })}</>} />
 
       {plan && (
         <Card>

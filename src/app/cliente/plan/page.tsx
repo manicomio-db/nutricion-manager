@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireClient } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -62,12 +63,7 @@ export default async function ClientePlanPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi plan</h1>
-        <p className="text-muted-foreground">
-          {profile.objetivo ? `Objetivo: ${profile.objetivo}` : "Tu plan nutricional vigente."}
-        </p>
-      </div>
+      <PageHeader title={<>Mi plan</>} subtitle={<>{profile.objetivo ? `Objetivo: ${profile.objetivo}` : "Tu plan nutricional vigente."}</>} />
 
       {!plan ? (
         <Card>

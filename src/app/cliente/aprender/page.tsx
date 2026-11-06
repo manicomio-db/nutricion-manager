@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireClient } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { Tip, TipCategory } from "@/lib/types";
@@ -30,10 +31,7 @@ export default async function AprenderPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Aprender</h1>
-        <p className="text-muted-foreground">Tips de Manicomio Gym para estar saludable.</p>
-      </div>
+      <PageHeader title={<>Aprender</>} subtitle={<>Tips de Manicomio Gym para estar saludable.</>} />
 
       {sections.length > 0 ? (
         sections.map(({ category, tips: sectionTips }) => (

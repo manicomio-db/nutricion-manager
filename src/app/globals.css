@@ -92,14 +92,20 @@
 
   --radius: 0.75rem;
 
-  --sidebar: oklch(0.99 0.005 75);
-  --sidebar-foreground: oklch(0.24 0.028 265);
+  --sidebar: oklch(0.19 0.02 265);
+  --sidebar-foreground: oklch(0.95 0.005 260);
   --sidebar-primary: oklch(0.58 0.225 28);
   --sidebar-primary-foreground: oklch(0.99 0.004 75);
-  --sidebar-accent: oklch(0.953 0.04 55);
-  --sidebar-accent-foreground: oklch(0.38 0.1 40);
-  --sidebar-border: oklch(0.915 0.01 75);
+  --sidebar-accent: oklch(1 0 0 / 9%);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.65 0.2 30);
+
+  /* Acentos de marca: grafito, naranja y plata */
+  --graphite: oklch(0.2 0.022 265);
+  --graphite-2: oklch(0.14 0.018 265);
+  --orange: oklch(0.68 0.19 48);
+  --silver: oklch(0.87 0.008 260);
 }
 
 @layer base {
@@ -131,4 +137,97 @@
 
 .neon-text {
   color: var(--primary);
+}
+
+/* ------------------------------------------------------------------ */
+/* Acentos de marca: líneas, formas y degradados (grafito · naranja · plata) */
+/* ------------------------------------------------------------------ */
+
+/* Línea fina con degradado naranja → plata. */
+.brand-line {
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--orange) 42%, var(--silver) 80%, transparent 100%);
+}
+
+/* Barra de acento en la parte superior de cada tarjeta. */
+[data-slot="card"] {
+  position: relative;
+}
+[data-slot="card"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--orange) 40%, var(--silver) 78%, transparent 100%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Superficies oscuras con líneas diagonales y un anillo metálico. */
+.brand-hero,
+.brand-bg,
+.brand-lines {
+  position: relative;
+  isolation: isolate;
+}
+.brand-hero::before,
+.brand-bg::before,
+.brand-lines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    118deg,
+    transparent 0 26px,
+    oklch(0.68 0.19 48 / 34%) 26px 28px,
+    transparent 28px 58px,
+    oklch(0.87 0.008 260 / 14%) 58px 59px
+  );
+  -webkit-mask-image: linear-gradient(100deg, transparent 25%, #000 88%);
+  mask-image: linear-gradient(100deg, transparent 25%, #000 88%);
+}
+.brand-hero::after,
+.brand-bg::after,
+.brand-lines::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  right: -3.5rem;
+  top: -4.5rem;
+  width: 11rem;
+  height: 11rem;
+  border-radius: 9999px;
+  border: 2px solid oklch(0.87 0.008 260 / 38%);
+  box-shadow:
+    0 0 0 14px oklch(0.68 0.19 48 / 11%),
+    inset 0 0 0 14px oklch(0.87 0.008 260 / 7%);
+}
+
+.brand-hero {
+  overflow: hidden;
+  border-radius: 1.25rem;
+  color: oklch(0.98 0 0);
+  background:
+    linear-gradient(90deg, var(--primary), var(--orange) 45%, var(--silver) 82%, transparent) bottom / 100% 3px no-repeat,
+    linear-gradient(135deg, var(--graphite) 0%, var(--graphite-2) 100%);
+  box-shadow: 0 18px 40px -20px oklch(0.2 0.03 265 / 60%);
+}
+
+.brand-bg {
+  overflow: hidden;
+  color: oklch(0.98 0 0);
+  background:
+    radial-gradient(42rem 24rem at 50% 0%, oklch(0.68 0.19 48 / 26%), transparent 70%),
+    linear-gradient(160deg, var(--graphite) 0%, var(--graphite-2) 100%);
+}
+.brand-bg::after {
+  right: auto;
+  left: -5rem;
+  top: auto;
+  bottom: -6rem;
+  width: 15rem;
+  height: 15rem;
 }

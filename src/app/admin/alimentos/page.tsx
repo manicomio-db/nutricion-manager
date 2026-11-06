@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireAdmin } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,12 +19,7 @@ export default async function AlimentosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Alimentos</h1>
-        <p className="text-muted-foreground">
-          Catálogo de macros por cada 100g. Usa &quot;Estimar con IA&quot; si no conoces los valores.
-        </p>
-      </div>
+      <PageHeader title={<>Alimentos</>} subtitle={<>Catálogo de macros por cada 100g. Usa &quot;Estimar con IA&quot; si no conoces los valores.</>} />
 
       <Card>
         <CardHeader>

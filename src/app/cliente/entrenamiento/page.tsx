@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireClient } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,12 +58,7 @@ export default async function ClienteEntrenamientoPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi entrenamiento</h1>
-        <p className="text-muted-foreground">
-          Consulta tu plan de entrenamiento asignado o pide uno nuevo.
-        </p>
-      </div>
+      <PageHeader title={<>Mi entrenamiento</>} subtitle={<>Consulta tu plan de entrenamiento asignado o pide uno nuevo.</>} />
 
       <Card>
         <CardHeader>

@@ -26,6 +26,7 @@ import { ProgressChart } from "@/components/progress-chart";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { DeleteClientButton } from "./delete-client-button";
 import { HealthTab } from "./health-tab";
+import { PageHeader } from "@/components/page-header";
 import { ResetPasswordForm } from "./reset-password-form";
 import { ageFromBirthDate } from "@/lib/health";
 import { analyzeProgress } from "@/lib/progress";
@@ -203,11 +204,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">{client.full_name ?? "Cliente"}</h1>
-          <p className="text-muted-foreground">{client.objetivo ?? "Sin objetivo definido"}</p>
-        </div>
+      <PageHeader title={client.full_name ?? "Cliente"} subtitle={client.objetivo ?? "Sin objetivo definido"}>
         <div className="flex items-center gap-3">
           <Badge variant={status === "activo" ? "default" : status === "vencido" ? "destructive" : "secondary"}>
             {MEMBERSHIP_LABEL[status]}
@@ -215,7 +212,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           </Badge>
           <DeleteClientButton clientId={id} clientName={client.full_name ?? "este cliente"} />
         </div>
-      </div>
+      </PageHeader>
 
       <Tabs defaultValue="datos">
         <TabsList>

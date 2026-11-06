@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -40,10 +41,7 @@ export default async function AdminPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Clientes</h1>
-        <p className="text-muted-foreground">Crea cuentas y administra los planes de cada cliente.</p>
-      </div>
+      <PageHeader title={<>Clientes</>} subtitle={<>Crea cuentas y administra los planes de cada cliente.</>} />
 
       <Card>
         <CardHeader>

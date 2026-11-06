@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,12 +28,7 @@ export default async function NuevoPlanPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Nuevo plan nutricional</h1>
-        <p className="text-muted-foreground">
-          Genera el plan con IA ahora mismo o ármalo a mano, sin esperar una solicitud del cliente.
-        </p>
-      </div>
+      <PageHeader title={<>Nuevo plan nutricional</>} subtitle={<>Genera el plan con IA ahora mismo o ármalo a mano, sin esperar una solicitud del cliente.</>} />
 
       <NutritionAiComposer
         request={{

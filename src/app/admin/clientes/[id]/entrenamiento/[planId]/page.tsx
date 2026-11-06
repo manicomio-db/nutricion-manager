@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -23,9 +24,7 @@ export default async function EditarPlanEntrenamientoPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Editar plan de entrenamiento</h1>
-      </div>
+      <PageHeader title={<>Editar plan de entrenamiento</>} />
       <Card>
         <CardHeader>
           <CardTitle>{plan.title}</CardTitle>
