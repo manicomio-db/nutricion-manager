@@ -197,8 +197,8 @@ export function PlanEditor({
         return (
           <Card key={mealIdx}>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <Input value={meal.nombre} onChange={(e) => renameMeal(mealIdx, e.target.value)} />
+              <div className="flex flex-wrap items-center gap-2">
+                <Input className="min-w-40 flex-1" value={meal.nombre} onChange={(e) => renameMeal(mealIdx, e.target.value)} />
                 <select
                   className="h-9 shrink-0 rounded-md border bg-background px-2 text-sm"
                   value={meal.momento ?? ""}
@@ -221,12 +221,13 @@ export function PlanEditor({
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {meal.items.map((item, itemIdx) => (
-                <div key={itemIdx} className="grid grid-cols-[2fr_1fr_2fr_auto] items-center gap-2">
+                <div key={itemIdx} className="grid grid-cols-[1fr_6rem] items-center gap-2 sm:grid-cols-[2fr_1fr_2fr_auto]">
                   <Select
+                    items={Object.fromEntries(foods.map((f) => [f.id, f.nombre]))}
                     value={item.food_id ?? undefined}
                     onValueChange={(v) => updateItemFood(mealIdx, itemIdx, String(v))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder={item.food_nombre || "Alimento"} />
                     </SelectTrigger>
                     <SelectContent>

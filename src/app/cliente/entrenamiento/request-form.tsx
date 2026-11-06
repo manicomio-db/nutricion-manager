@@ -36,7 +36,11 @@ export function RequestTrainingForm({ hasPreviousPlan = false }: { hasPreviousPl
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="nivel">Nivel</Label>
-        <Select name="nivel" defaultValue="intermedio">
+        <Select
+          name="nivel"
+          defaultValue="intermedio"
+          items={{ principiante: "Principiante", intermedio: "Intermedio", avanzado: "Avanzado" }}
+        >
           <SelectTrigger id="nivel">
             <SelectValue />
           </SelectTrigger>

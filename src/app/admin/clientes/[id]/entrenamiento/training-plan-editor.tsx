@@ -134,9 +134,9 @@ export function TrainingPlanEditor({
       </div>
 
       {contenido.dias.map((dia, i) => (
-        <div key={i} className="flex flex-col gap-2 rounded-md border p-3">
-          <div className="flex items-center gap-2">
-            <Input value={dia.dia} onChange={(e) => updateDia(i, e.target.value)} />
+        <div key={i} className="flex flex-col gap-2 overflow-x-auto rounded-md border p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input className="min-w-40 flex-1" value={dia.dia} onChange={(e) => updateDia(i, e.target.value)} />
             <Button type="button" size="sm" variant="ghost" disabled={i === 0} onClick={() => moveDia(i, -1)}>
               ↑
             </Button>
@@ -155,7 +155,7 @@ export function TrainingPlanEditor({
           </div>
 
           {dia.ejercicios.length > 0 && (
-            <div className="grid grid-cols-[2fr_1fr_1fr_2fr_2fr_auto_auto_auto] gap-2 px-1 text-xs font-medium text-muted-foreground">
+            <div className="grid min-w-[820px] grid-cols-[2fr_1fr_1fr_2fr_2fr_auto_auto_auto] gap-2 px-1 text-xs font-medium text-muted-foreground">
               <span>Ejercicio</span>
               <span>Series</span>
               <span>Reps</span>
@@ -168,7 +168,7 @@ export function TrainingPlanEditor({
           )}
 
           {dia.ejercicios.map((ej, j) => (
-            <div key={j} className="grid grid-cols-[2fr_1fr_1fr_2fr_2fr_auto_auto_auto] gap-2">
+            <div key={j} className="grid min-w-[820px] grid-cols-[2fr_1fr_1fr_2fr_2fr_auto_auto_auto] gap-2">
               <Input
                 placeholder="Ejercicio"
                 value={ej.nombre}

@@ -38,7 +38,7 @@ export function ClientShell({
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] backdrop-blur">
         <span aria-hidden className="brand-line absolute inset-x-0 bottom-0" />
         <div className="flex min-w-0 items-center gap-2">
           <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-8 shrink-0 rounded-lg shadow-sm" priority />
@@ -78,11 +78,11 @@ export function ClientShell({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 overflow-y-auto px-4 pt-4 pb-24">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 overflow-y-auto px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))]">{children}</main>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-card/95 backdrop-blur">
         <span aria-hidden className="brand-line absolute inset-x-0 top-0" />
-        <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2">
+        <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           {NAV.map((item) => {
             const active = pathname === item.href;
             const Icon = item.icon;

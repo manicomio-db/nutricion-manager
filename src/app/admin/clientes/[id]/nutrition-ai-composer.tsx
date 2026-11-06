@@ -602,9 +602,9 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
             {comidas.map((meal, mealIdx) => {
               const totals = mealTotals(meal);
               return (
-                <div key={mealIdx} className="flex flex-col gap-2 rounded-md border p-3">
-                  <div className="flex items-center gap-2">
-                    <Input value={meal.nombre} onChange={(e) => updateMealNombre(mealIdx, e.target.value)} />
+                <div key={mealIdx} className="flex flex-col gap-2 overflow-x-auto rounded-md border p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input className="min-w-40 flex-1" value={meal.nombre} onChange={(e) => updateMealNombre(mealIdx, e.target.value)} />
                     <select
                       className="h-9 shrink-0 rounded-md border bg-background px-2 text-sm"
                       value={meal.momento ?? ""}
@@ -619,7 +619,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
                     </Button>
                   </div>
                   {meal.items.length > 0 && (
-                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto_auto] gap-2 px-1 text-xs font-medium text-muted-foreground">
+                    <div className="grid min-w-[720px] grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto_auto] gap-2 px-1 text-xs font-medium text-muted-foreground">
                       <span>Alimento</span>
                       <span>Gramos</span>
                       <span>Calorías</span>
@@ -633,7 +633,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
                   {meal.items.map((item, itemIdx) => {
                     const key = `${mealIdx}-${itemIdx}`;
                     return (
-                      <div key={itemIdx} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto_auto] gap-2">
+                      <div key={itemIdx} className="grid min-w-[720px] grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto_auto] gap-2">
                         <Input
                           placeholder="Alimento"
                           value={item.food_nombre}

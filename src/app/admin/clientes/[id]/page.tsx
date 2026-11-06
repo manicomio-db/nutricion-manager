@@ -215,6 +215,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       </PageHeader>
 
       <Tabs defaultValue="datos">
+        <div className="-mx-1 overflow-x-auto px-1 pb-1">
         <TabsList>
           <TabsTrigger value="datos">Datos</TabsTrigger>
           <TabsTrigger value="ficha">Ficha de salud</TabsTrigger>
@@ -223,6 +224,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <TabsTrigger value="entrenamiento">Entrenamiento</TabsTrigger>
           <TabsTrigger value="progreso">Progreso</TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="datos">
           <Card>

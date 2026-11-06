@@ -37,7 +37,11 @@ export function TipForm({ categories }: { categories: TipCategory[] }) {
     <form ref={formRef} action={onSubmit} className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
         <Label>Sección</Label>
-        <Select name="category_id" required>
+        <Select
+          name="category_id"
+          required
+          items={Object.fromEntries(categories.map((c) => [c.id, c.titulo]))}
+        >
           <SelectTrigger className="w-full sm:w-64">
             <SelectValue placeholder="Selecciona una sección" />
           </SelectTrigger>

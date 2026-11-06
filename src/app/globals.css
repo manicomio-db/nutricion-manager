@@ -165,6 +165,10 @@
   }
   html {
     @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    overflow-x: clip;
   }
   h1,
   h2 {
@@ -209,9 +213,13 @@
 
 /* Superficies oscuras con líneas diagonales y un anillo metálico. */
 .brand-hero,
+.brand-bg {
+  position: relative;
+}
+/* .brand-lines no fija la posición: quien lo usa (fixed, sticky, relative) la define con sus clases. */
+.brand-hero,
 .brand-bg,
 .brand-lines {
-  position: relative;
   isolation: isolate;
 }
 .brand-hero::before,
