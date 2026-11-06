@@ -38,7 +38,7 @@ export function ClientShell({
     <div className="flex min-h-svh flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur">
         <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-8" priority />
+          <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-8 rounded-lg shadow-sm" priority />
           <span className="truncate text-sm font-medium">{name ?? "Usuario"}</span>
         </div>
         <div className="flex items-center gap-1">

@@ -32,10 +32,10 @@ export function AppShell({
             alt="Manicomio Gym"
             width={1320}
             height={1283}
-            className="w-24"
+            className="w-20 rounded-2xl shadow-md shadow-primary/20"
             priority
           />
-          <p className="mt-2 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Nutrición · Admin
           </p>
         </div>
@@ -47,10 +47,10 @@ export function AppShell({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "border-l-2 px-3 py-2 text-sm font-medium uppercase tracking-wide transition-colors",
+                  "rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
                   active
-                    ? "border-primary bg-primary/10 text-foreground"
-                    : "border-transparent text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
                 )}
               >
                 {item.label}

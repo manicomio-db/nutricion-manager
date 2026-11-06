@@ -68,7 +68,7 @@ export function HealthTab({
         </Card>
       ) : (
         <Card>
-          <CardContent className="pt-6 text-sm text-muted-foreground">
+          <CardContent className="text-sm text-muted-foreground">
             Este cliente todavía no ha llenado su ficha de salud. Puede hacerlo desde su portal o puedes llenarla
             tú aquí abajo.
           </CardContent>

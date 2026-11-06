@@ -71,7 +71,7 @@ export default async function ClientePlanPage() {
 
       {!plan ? (
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="">
             <p className="text-muted-foreground">
               Aún no tienes un plan asignado. Tu nutricionista te lo asignará pronto.
             </p>

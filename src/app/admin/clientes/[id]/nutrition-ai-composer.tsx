@@ -584,7 +584,7 @@ export function NutritionAiComposer({ request }: { request: RequestInfo }) {
                       {metasNum && diff !== null && (
                         <span
                           className={
-                            Math.abs(diff) <= metasNum[k] * 0.05 ? "text-green-500" : "text-amber-500"
+                            Math.abs(diff) <= metasNum[k] * 0.05 ? "text-success" : "text-warning"
                           }
                         >
                           {" "}

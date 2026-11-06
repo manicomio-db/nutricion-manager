@@ -87,7 +87,7 @@ export function MealCard({
         )}
 
         {otra && log && (
-          <div className="flex flex-col gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
+          <div className="flex flex-col gap-2 rounded-md border border-warning/40 bg-warning/5 p-3 text-sm">
             <p className="font-medium">Comiste otra cosa en esta comida</p>
             <p className="text-muted-foreground">{log.descripcion}</p>
             <p>

@@ -54,7 +54,7 @@ export function WaterTracker({
 
       {goalMl && (
         <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+          <div className="h-full rounded-full bg-water transition-all" style={{ width: `${pct}%` }} />
         </div>
       )}
 
@@ -67,7 +67,7 @@ export function WaterTracker({
             aria-label={`Vaso ${i + 1}`}
             // Tocar un vaso lo marca/desmarca hasta ese punto.
             onClick={() => change(i + 1 - glasses)}
-            className={i < glasses ? "text-primary" : "text-muted-foreground/40"}
+            className={i < glasses ? "text-water" : "text-muted-foreground/30"}
           >
             <Droplets className="size-7" fill={i < glasses ? "currentColor" : "none"} />
           </button>
@@ -76,7 +76,7 @@ export function WaterTracker({
 
       {goalMl &&
         (met ? (
-          <p className="text-sm font-medium text-primary">¡Meta de agua cumplida hoy! 💧</p>
+          <p className="text-sm font-medium text-water">¡Meta de agua cumplida hoy! 💧</p>
         ) : (
           <p className="text-sm text-muted-foreground">
             Te faltan {((goalMl - consumedMl) / 1000).toFixed(2).replace(/\.?0+$/, "")} L (

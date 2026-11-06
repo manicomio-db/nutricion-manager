@@ -89,7 +89,7 @@ export default async function ClienteInicioPage() {
 
       <Link href="/cliente/hoy">
         <Card className="transition-colors hover:bg-muted/50">
-          <CardContent className="flex items-center justify-between gap-3 pt-6">
+          <CardContent className="flex items-center justify-between gap-3">
             <div>
               <p className="font-semibold">Mi día</p>
               <p className="text-sm text-muted-foreground">
@@ -103,7 +103,7 @@ export default async function ClienteInicioPage() {
 
       {latestPayment && (
         <Card>
-          <CardContent className="flex items-center justify-between pt-6 text-sm">
+          <CardContent className="flex items-center justify-between text-sm">
             <span>
               Suscripción vence <strong>{latestPayment.fecha_vencimiento}</strong>
             </span>
@@ -133,8 +133,8 @@ export default async function ClienteInicioPage() {
           {dayTotals ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <MacroRing label="Calorías" value={dayTotals.kcal} max={dayTotals.kcal} unit="kcal" color="var(--chart-1)" />
-              <MacroRing label="Proteína" value={dayTotals.proteina} max={dayTotals.proteina} unit="g" color="var(--chart-2)" />
-              <MacroRing label="Carbos" value={dayTotals.carbos} max={dayTotals.carbos} unit="g" color="var(--chart-3)" />
+              <MacroRing label="Proteína" value={dayTotals.proteina} max={dayTotals.proteina} unit="g" color="var(--chart-3)" />
+              <MacroRing label="Carbos" value={dayTotals.carbos} max={dayTotals.carbos} unit="g" color="var(--chart-2)" />
               <MacroRing label="Grasas" value={dayTotals.grasas} max={dayTotals.grasas} unit="g" color="var(--chart-4)" />
             </div>
           ) : (
@@ -175,7 +175,7 @@ export default async function ClienteInicioPage() {
 
       <div className="grid grid-cols-2 gap-4">
         <Card>
-          <CardContent className="flex flex-col items-center gap-1 pt-6 text-center">
+          <CardContent className="flex flex-col items-center gap-1 text-center">
             <Scale className="size-5 text-primary" />
             <p className="text-2xl font-bold">{lastLog?.peso_kg ?? "—"}</p>
             <p className="text-xs text-muted-foreground">
@@ -186,7 +186,7 @@ export default async function ClienteInicioPage() {
 
         <Link href="/cliente/aprender">
           <Card className="h-full transition-colors hover:bg-muted/50">
-            <CardContent className="flex flex-col items-center gap-1 pt-6 text-center">
+            <CardContent className="flex flex-col items-center gap-1 text-center">
               <BookOpen className="size-5 text-primary" />
               <p className="font-semibold">Aprender</p>
               <p className="text-xs text-muted-foreground">ManicomioTips</p>

@@ -49,7 +49,7 @@ export default async function AprenderPage() {
         ))
       ) : (
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="">
             <p className="text-muted-foreground">Aún no hay tips publicados.</p>
           </CardContent>
         </Card>

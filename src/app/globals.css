@@ -7,9 +7,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-anton);
+  --font-heading: var(--font-jakarta);
+  --color-water: var(--water);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,73 +51,55 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * Tema claro y cálido: fondo marfil, tarjetas blancas, tinta azul-gris para el texto.
+ * El rojo-naranja de Manicomio Gym se conserva como color principal; turquesa, ámbar,
+ * azul cielo y verde salvia lo acompañan (macros, agua y estados).
+ */
 :root {
-  --background: oklch(0.09 0.004 30);
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.13 0.012 25);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.12 0.012 25);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.6 0.26 18);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.19 0.012 25);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.16 0.01 25);
-  --muted-foreground: oklch(0.65 0.02 25);
-  --accent: oklch(0.22 0.05 18);
-  --accent-foreground: oklch(0.97 0 0);
-  --destructive: oklch(0.55 0.22 38);
-  --border: oklch(0.55 0.22 18 / 22%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.6 0.26 18);
-  --chart-1: oklch(0.6 0.26 18);
-  --chart-2: oklch(0.75 0.15 18);
-  --chart-3: oklch(0.5 0.2 18);
-  --chart-4: oklch(0.4 0.15 18);
-  --chart-5: oklch(0.85 0.05 18);
-  --radius: 0.35rem;
-  --sidebar: oklch(0.06 0.004 30);
-  --sidebar-foreground: oklch(0.97 0 0);
-  --sidebar-primary: oklch(0.6 0.26 18);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.16 0.04 18);
-  --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(0.55 0.22 18 / 20%);
-  --sidebar-ring: oklch(0.6 0.26 18);
-}
+  color-scheme: light;
 
-.dark {
-  --background: oklch(0.09 0.004 30);
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.13 0.012 25);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.12 0.012 25);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.6 0.26 18);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.19 0.012 25);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.16 0.01 25);
-  --muted-foreground: oklch(0.65 0.02 25);
-  --accent: oklch(0.22 0.05 18);
-  --accent-foreground: oklch(0.97 0 0);
-  --destructive: oklch(0.55 0.22 38);
-  --border: oklch(0.55 0.22 18 / 22%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.6 0.26 18);
-  --chart-1: oklch(0.6 0.26 18);
-  --chart-2: oklch(0.75 0.15 18);
-  --chart-3: oklch(0.5 0.2 18);
-  --chart-4: oklch(0.4 0.15 18);
-  --chart-5: oklch(0.85 0.05 18);
-  --sidebar: oklch(0.06 0.004 30);
-  --sidebar-foreground: oklch(0.97 0 0);
-  --sidebar-primary: oklch(0.6 0.26 18);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.16 0.04 18);
-  --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(0.55 0.22 18 / 20%);
-  --sidebar-ring: oklch(0.6 0.26 18);
+  --background: oklch(0.978 0.007 75);
+  --foreground: oklch(0.24 0.028 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.028 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.028 265);
+
+  --primary: oklch(0.58 0.225 28);
+  --primary-foreground: oklch(0.99 0.004 75);
+  --secondary: oklch(0.955 0.012 75);
+  --secondary-foreground: oklch(0.3 0.03 265);
+  --muted: oklch(0.955 0.01 75);
+  --muted-foreground: oklch(0.5 0.025 265);
+  --accent: oklch(0.953 0.04 55);
+  --accent-foreground: oklch(0.38 0.1 40);
+  --destructive: oklch(0.52 0.21 20);
+
+  --border: oklch(0.915 0.01 75);
+  --input: oklch(0.88 0.012 75);
+  --ring: oklch(0.65 0.2 30);
+
+  /* Colores complementarios */
+  --chart-1: oklch(0.58 0.225 28); /* coral (marca) */
+  --chart-2: oklch(0.8 0.15 80); /* ámbar */
+  --chart-3: oklch(0.62 0.11 190); /* turquesa */
+  --chart-4: oklch(0.66 0.13 240); /* azul cielo */
+  --chart-5: oklch(0.68 0.1 150); /* verde salvia */
+  --water: oklch(0.64 0.14 235);
+  --success: oklch(0.55 0.13 155);
+  --warning: oklch(0.62 0.15 70);
+
+  --radius: 0.75rem;
+
+  --sidebar: oklch(0.99 0.005 75);
+  --sidebar-foreground: oklch(0.24 0.028 265);
+  --sidebar-primary: oklch(0.58 0.225 28);
+  --sidebar-primary-foreground: oklch(0.99 0.004 75);
+  --sidebar-accent: oklch(0.953 0.04 55);
+  --sidebar-accent-foreground: oklch(0.38 0.1 40);
+  --sidebar-border: oklch(0.915 0.01 75);
+  --sidebar-ring: oklch(0.65 0.2 30);
 }
 
 @layer base {
@@ -123,24 +108,27 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(60rem 28rem at 50% -8rem, oklch(0.75 0.15 45 / 10%), transparent 70%),
+      radial-gradient(40rem 24rem at 100% 0%, oklch(0.7 0.1 190 / 7%), transparent 70%);
+    background-repeat: no-repeat;
   }
   html {
     @apply font-sans;
   }
   h1,
   h2 {
-    @apply font-heading uppercase tracking-tight;
+    @apply font-heading font-bold tracking-tight;
   }
 }
 
-.neon-text {
-  text-shadow:
-    0 0 8px oklch(0.6 0.26 18 / 70%),
-    0 0 20px oklch(0.6 0.26 18 / 45%);
-}
-
+/* Marco de acento suave (antes "neón"): borde fino del color de marca y halo cálido. */
 .neon-border {
   box-shadow:
-    0 0 0 1px oklch(0.6 0.26 18 / 50%),
-    0 0 16px oklch(0.6 0.26 18 / 25%);
+    0 0 0 1px oklch(0.58 0.225 28 / 28%),
+    0 12px 40px -12px oklch(0.58 0.225 28 / 30%);
+}
+
+.neon-text {
+  color: var(--primary);
 }

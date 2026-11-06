@@ -110,7 +110,7 @@ export default async function HoyPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">Mi día</h1>
-        <p className="capitalize text-muted-foreground">
+        <p className="text-muted-foreground first-letter:uppercase">
           {new Date(`${today}T12:00:00`).toLocaleDateString("es-MX", {
             weekday: "long",
             day: "numeric",
@@ -132,15 +132,15 @@ export default async function HoyPage() {
           <CardContent className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
               <MacroRing label="Calorías" value={Math.round(consumed.kcal)} max={Math.round(target.kcal)} unit="kcal" />
-              <MacroRing label="Proteína" value={Math.round(consumed.proteina)} max={Math.round(target.proteina)} unit="g" />
-              <MacroRing label="Carbos" value={Math.round(consumed.carbos)} max={Math.round(target.carbos)} unit="g" />
-              <MacroRing label="Grasas" value={Math.round(consumed.grasas)} max={Math.round(target.grasas)} unit="g" />
+              <MacroRing label="Proteína" value={Math.round(consumed.proteina)} max={Math.round(target.proteina)} unit="g" color="var(--chart-3)" />
+              <MacroRing label="Carbos" value={Math.round(consumed.carbos)} max={Math.round(target.carbos)} unit="g" color="var(--chart-2)" />
+              <MacroRing label="Grasas" value={Math.round(consumed.grasas)} max={Math.round(target.grasas)} unit="g" color="var(--chart-4)" />
             </div>
             <p className="text-sm text-muted-foreground">
               Meta del día: {Math.round(target.kcal)} kcal · P {Math.round(target.proteina)}g · C{" "}
               {Math.round(target.carbos)}g · G {Math.round(target.grasas)}g.{" "}
               {diff > 0 ? (
-                <span className="text-amber-500">Llevas {diff} kcal por encima de tu meta.</span>
+                <span className="font-medium text-warning">Llevas {diff} kcal por encima de tu meta.</span>
               ) : null}
             </p>
           </CardContent>
@@ -166,7 +166,7 @@ export default async function HoyPage() {
         </div>
       ) : (
         <Card>
-          <CardContent className="pt-6 text-sm text-muted-foreground">
+          <CardContent className="text-sm text-muted-foreground">
             Aún no tienes un plan de alimentación asignado. Mientras tanto puedes registrar tu agua y lo que
             comes.
           </CardContent>
@@ -231,7 +231,7 @@ export default async function HoyPage() {
               registrar tu composición corporal).
             </p>
           )}
-          {waterGoal?.caution && <p className="text-sm text-amber-500">{waterGoal.caution}</p>}
+          {waterGoal?.caution && <p className="text-sm font-medium text-warning">{waterGoal.caution}</p>}
         </CardContent>
       </Card>
 
@@ -245,7 +245,7 @@ export default async function HoyPage() {
             const waterPct = waterGoal ? Math.min(100, Math.round((row.ml / waterGoal.ml) * 100)) : null;
             return (
               <div key={row.date} className="flex items-center justify-between gap-3 rounded-md border p-2.5 text-sm">
-                <span className="w-24 capitalize">{dayLabel(row.date)}</span>
+                <span className="w-24 first-letter:uppercase">{dayLabel(row.date)}</span>
                 <span className="text-muted-foreground">
                   {plan ? `${row.planDone}/${totalMeals} comidas · ` : ""}
                   {row.kcal} kcal

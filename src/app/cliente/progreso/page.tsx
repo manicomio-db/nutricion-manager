@@ -104,7 +104,7 @@ export default async function ClienteProgresoPage() {
         </>
       ) : (
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="">
             <p className="text-muted-foreground">Aún no hay mediciones registradas.</p>
           </CardContent>
         </Card>

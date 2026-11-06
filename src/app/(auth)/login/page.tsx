@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
-      <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-40" priority />
+      <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-32 rounded-3xl shadow-xl shadow-primary/25" priority />
       <Card className="w-full max-w-sm neon-border">
         <CardHeader>
           <CardTitle>Nutrición</CardTitle>

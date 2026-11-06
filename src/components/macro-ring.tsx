@@ -44,7 +44,6 @@ export function MacroRing({
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={offset}
-            style={{ filter: `drop-shadow(0 0 4px ${color})` }}
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
